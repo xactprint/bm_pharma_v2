@@ -66,7 +66,7 @@ public static class DependencyInjection
         var config = new ChifaIntegrationConfig
         {
             Mode = mode.ToString(),
-            ConnectionString = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=pharm;Trust=true"
+            ConnectionString = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=pharm;TrustServerCertificate=true"
         };
         services.AddSingleton(config);
 
