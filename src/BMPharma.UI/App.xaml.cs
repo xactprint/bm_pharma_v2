@@ -35,8 +35,8 @@ public partial class App : System.Windows.Application
                 services.AddDbContext<BmPharmaDbContext>(options =>
                     options.UseSqlite($"Data Source=bmpharma.db"));
 
-                // CHIFA Integration (stubs)
-                services.AddChifaIntegration();
+                // CHIFA Integration (mode-based switching)
+                services.AddChifaIntegration(context.Configuration);
 
                 // Notifications (stubs)
                 services.AddNotifications();
