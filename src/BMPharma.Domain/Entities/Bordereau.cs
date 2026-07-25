@@ -21,4 +21,10 @@ public class Bordereau : AuditableEntity
     public User User { get; set; } = null!;
     
     public ICollection<BordereauInvoice> BordereauInvoices { get; set; } = new List<BordereauInvoice>();
+
+    public string? ChifaNumBord { get; set; }
+    public ChifaWorkflowState ChifaState { get; set; } = ChifaWorkflowState.Draft;
+    public ChifaIntegrationState ChifaIntegrationState { get; set; } = ChifaIntegrationState.Unknown;
+    public string? ChifaErrorMessage { get; set; }
+    public DateTime? ChifaLastUpdated { get; set; }
 }

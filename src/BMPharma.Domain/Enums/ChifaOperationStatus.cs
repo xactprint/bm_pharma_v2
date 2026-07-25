@@ -12,5 +12,10 @@ public enum ChifaOperationStatus
     Closed = 7,
     Transmitted = 8,
     Rejected = 9,
-    Failed = 10
+    Failed = 10,
+    SimulatedDatabaseCreated = 11,
+    SimulatedCHIFAVisible = 12,
+    SimulatedSigned = 13,
+    SimulatedClosed = 14,
+    SimulatedTransmitted = 15
 }

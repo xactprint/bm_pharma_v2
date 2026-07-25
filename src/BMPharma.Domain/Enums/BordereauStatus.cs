@@ -6,5 +6,6 @@ public enum BordereauStatus
     Submitted = 1,
     Signed = 2,
     Closed = 3,
-    Rejected = 4
+    Transmitted = 4,
+    Rejected = 5
 }

@@ -23,4 +23,18 @@ public class Invoice : AuditableEntity
     
     public ICollection<InvoiceLine> Lines { get; set; } = new List<InvoiceLine>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+    public ChifaWorkflowState ChifaState { get; set; } = ChifaWorkflowState.Draft;
+    public ChifaIntegrationState ChifaIntegrationState { get; set; } = ChifaIntegrationState.Unknown;
+    public string? ChifaNumFact { get; set; }
+    public string? ChifaNumAssure { get; set; }
+    public int? ChifaCodeCentre { get; set; }
+    public decimal ChifaMontFact { get; set; }
+    public decimal ChifaMontAs { get; set; }
+    public decimal ChifaMontMut { get; set; }
+    public DateTime? ChifaDateFact { get; set; }
+    public DateTime? ChifaDateFinMut { get; set; }
+    public string? ChifaNumBord { get; set; }
+    public string? ChifaErrorMessage { get; set; }
+    public DateTime? ChifaLastUpdated { get; set; }
 }
