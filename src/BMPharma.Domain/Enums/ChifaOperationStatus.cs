@@ -1,0 +1,16 @@
+namespace BMPharma.Domain.Enums;
+
+public enum ChifaOperationStatus
+{
+    NotStarted = 0,
+    InProgress = 1,
+    DatabaseCreated = 2,
+    CHIFAVisible = 3,
+    ReadyForSigning = 4,
+    SigningInProgress = 5,
+    Signed = 6,
+    Closed = 7,
+    Transmitted = 8,
+    Rejected = 9,
+    Failed = 10
+}
