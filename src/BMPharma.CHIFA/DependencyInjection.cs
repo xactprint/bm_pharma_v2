@@ -70,7 +70,7 @@ public static class DependencyInjection
         var config = new ChifaIntegrationConfig
         {
             Mode = mode.ToString(),
-            ConnectionString = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=pharm;TrustServerCertificate=true"
+            ConnectionString = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=postgres;SslMode=Disable;TrustServerCertificate=true;Timeout=5;CommandTimeout=10"
         };
         services.AddSingleton(config);
 

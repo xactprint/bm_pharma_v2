@@ -2,6 +2,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BMPharma.Persistence.PostgreSQL.Entities.Chifa;
 
+/// <summary>
+/// Maps to the real CHIFA_OFFICINE facture table (53 physical columns).
+/// 7 columns were dropped by CHIFA migrations (attnum gaps 34-35, 40, 42-45).
+/// Schema: public | Source: BM-PHASE-004.9 real database discovery
+/// </summary>
 [Table("facture")]
 public class ChifaFacture
 {
@@ -29,11 +34,80 @@ public class ChifaFacture
     [Column("num_assure")]
     public string? NumAssure { get; set; }
 
+    [Column("rang_ad")]
+    public string? RangAd { get; set; }
+
     [Column("code_centre")]
     public string? CodeCentre { get; set; }
 
+    [Column("tp")]
+    public string? Tp { get; set; }
+
+    [Column("taux")]
+    public string? Taux { get; set; }
+
+    [Column("code_affect")]
+    public string? CodeAffect { get; set; }
+
+    [Column("conv")]
+    public string? Conv { get; set; }
+
+    [Column("type_consult")]
+    public string? TypeConsult { get; set; }
+
+    [Column("prescripteur")]
+    public string? Prescripteur { get; set; }
+
     [Column("date_soin")]
     public DateTime? DateSoin { get; set; }
+
+    [Column("risque")]
+    public string? Risque { get; set; }
+
+    [Column("statut_fact")]
+    public string? StatutFact { get; set; }
+
+    [Column("verifcms")]
+    public string? Verifcms { get; set; }
+
+    [Column("type_signature")]
+    public string? TypeSignature { get; set; }
+
+    [Column("verif_fact")]
+    public string? VerifFact { get; set; }
+
+    [Column("mont_maj_fae")]
+    public decimal MontMajFae { get; set; }
+
+    [Column("mont_maj")]
+    public decimal MontMaj { get; set; }
+
+    [Column("type_maj")]
+    public int TypeMaj { get; set; }
+
+    [Column("code_centre_as")]
+    public string? CodeCentreAs { get; set; }
+
+    [Column("code_sp")]
+    public string? CodeSp { get; set; }
+
+    [Column("type_ord")]
+    public string? TypeOrd { get; set; }
+
+    [Column("motif_med")]
+    public string? MotifMed { get; set; }
+
+    [Column("id_user")]
+    public int? IdUser { get; set; }
+
+    [Column("signature")]
+    public string? Signature { get; set; }
+
+    [Column("num_serie")]
+    public long? NumSerie { get; set; }
+
+    [Column("date_envoi_sms")]
+    public DateTime? DateEnvoiSms { get; set; }
 
     [Column("date_fin_droit")]
     public DateTime? DateFinDroit { get; set; }
@@ -41,20 +115,14 @@ public class ChifaFacture
     [Column("date_fin_droit_benef")]
     public DateTime? DateFinDroitBenef { get; set; }
 
-    [Column("date_envoi_sms")]
-    public DateTime? DateEnvoiSms { get; set; }
+    [Column("version")]
+    public string? Version { get; set; }
 
-    [Column("date_synchro")]
-    public DateTime? DateSynchro { get; set; }
+    [Column("code_covid")]
+    public string? CodeCovid { get; set; }
 
-    [Column("type_maj")]
-    public int TypeMaj { get; set; }
-
-    [Column("mont_maj_fae")]
-    public decimal MontMajFae { get; set; }
-
-    [Column("mont_maj")]
-    public decimal MontMaj { get; set; }
+    [Column("fact_xml")]
+    public string? FactXml { get; set; }
 
     [Column("nat_remb")]
     public string? NatRemb { get; set; }
@@ -65,8 +133,23 @@ public class ChifaFacture
     [Column("date_fin_mut")]
     public DateTime? DateFinMut { get; set; }
 
-    [Column("version")]
-    public string? Version { get; set; }
+    [Column("code_mut")]
+    public string? CodeMut { get; set; }
+
+    [Column("date_synchro")]
+    public DateTime? DateSynchro { get; set; }
+
+    [Column("adresse_ip")]
+    public string? AdresseIp { get; set; }
+
+    [Column("nom_pc")]
+    public string? NomPc { get; set; }
+
+    [Column("obs")]
+    public string? Obs { get; set; }
+
+    [Column("ref_cm")]
+    public string? RefCm { get; set; }
 
     [Column("num_serie_ps")]
     public long? NumSeriePs { get; set; }
@@ -85,82 +168,4 @@ public class ChifaFacture
 
     [Column("id_e_ord")]
     public long? IdEOrd { get; set; }
-
-    [Column("taux")]
-    public decimal? Taux { get; set; }
-
-    [Column("nom_assure")]
-    public string? NomAssure { get; set; }
-
-    [Column("prenom_assure")]
-    public string? PrenomAssure { get; set; }
-
-    [Column("nom_benef")]
-    public string? NomBenef { get; set; }
-
-    [Column("prenom_benef")]
-    public string? PrenomBenef { get; set; }
-
-    [Column("lieu_naissance")]
-    public string? LieuNaissance { get; set; }
-
-    [Column("date_naissance")]
-    public DateTime? DateNaissance { get; set; }
-
-    [Column("wilaya")]
-    public string? Wilaya { get; set; }
-
-    [Column("commune")]
-    public string? Commune { get; set; }
-
-    [Column("adresse")]
-    public string? Adresse { get; set; }
-
-    [Column("code_postal")]
-    public string? CodePostal { get; set; }
-
-    [Column("tel")]
-    public string? Tel { get; set; }
-
-    [Column("num_dossier")]
-    public string? NumDossier { get; set; }
-
-    [Column("motif_rejet")]
-    public string? MotifRejet { get; set; }
-
-    [Column("date_rejet")]
-    public DateTime? DateRejet { get; set; }
-
-    [Column("date_paiement")]
-    public DateTime? DatePaiement { get; set; }
-
-    [Column("mont_paiement")]
-    public decimal? MontPaiement { get; set; }
-
-    [Column("num_cheque")]
-    public string? NumCheque { get; set; }
-
-    [Column("date_controle")]
-    public DateTime? DateControle { get; set; }
-
-    [Column("id_utilisateur")]
-    public int? IdUtilisateur { get; set; }
-
-    [Column("date_creation")]
-    public DateTime? DateCreation { get; set; }
-
-    [Column("date_modification")]
-    public DateTime? DateModification { get; set; }
-
-    [Column("centre_gestion")]
-    public string? CentreGestion { get; set; }
-
-    [Column("code_acte")]
-    public string? CodeActe { get; set; }
-
-    [Column("beneficiaire")]
-    public string? Beneficiaire { get; set; }
-
-    [Column("matricule")]
-    public string? Matricule { get; set; }
 }

@@ -182,7 +182,7 @@ public class ChifaDbContextTests
     {
         using var context = new ChifaPostgreSqlContext(CreateReadOnlyOptions());
         var propertyCount = context.Model.FindEntityType(typeof(ChifaFacture))!.GetProperties().Count();
-        propertyCount.Should().BeGreaterThanOrEqualTo(48, "DATABASE_CONTRACT specifies at least 48 mapped columns for facture");
+        propertyCount.Should().Be(53, "BM-PHASE-004.9 real schema has 53 physical columns in facture (60 logical minus 7 dropped)");
     }
 
     [Fact]

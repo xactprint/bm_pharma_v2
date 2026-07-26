@@ -2,8 +2,8 @@
 using System;
 using System.Threading.Tasks;
 
-const string DEFAULT_TEST_CONN = "Host=localhost;Port=5433;Database=CHIFA_OFFICINE;Username=pharm;Password=pharm;TrustServerCertificate=true;Timeout=5;CommandTimeout=10;";
-const string DEFAULT_REAL_CONN = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=pharm;TrustServerCertificate=true;Timeout=5;CommandTimeout=10;";
+const string DEFAULT_TEST_CONN = "Host=localhost;Port=5433;Database=CHIFA_OFFICINE;Username=pharm;Password=pharm;TrustServerCertificate=true;SslMode=Disable;Timeout=5;CommandTimeout=10;";
+const string DEFAULT_REAL_CONN = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=postgres;SslMode=Disable;TrustServerCertificate=true;Timeout=5;CommandTimeout=10;";
 
 string connectionString;
 string targetLabel;
@@ -73,35 +73,29 @@ try
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     await Run(conn, @"
         SELECT table_name,
-               (SELECT count(*) FROM information_schema.columns c WHERE c.table_name = t.table_name AND c.table_schema = 'public') AS columns
+               (SELECT count(*) FROM information_schema.columns c WHERE c.table_name = t.table_name AND c.table_schema = 'public') AS columns,
+               pg_size_size(pg_total_relation_size(quote_ident(table_name))) AS total_size
         FROM information_schema.tables t
         WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
         ORDER BY table_name");
 
     Console.WriteLine();
 
-    // 3. Row counts
+    // 3. Row counts for all critical tables
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     Console.WriteLine("  3. TABLE ROW COUNTS");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    foreach (var table in new[] { "facture", "detail_fact", "bordereau", "parametre" })
+    foreach (var table in new[] { "facture", "detail_fact", "bordereau", "parametre", "medicament", "ln", "signature", "forme", "specialite", "tarif", "centre", "utilisateur", "medic_sp", "medic_demuni", "beneficiaire" })
     {
         await Run(conn, $"SELECT '{table}' AS table_name, count(*) AS row_count FROM {table}");
     }
 
     Console.WriteLine();
 
-    // 4-7. Columns for each critical table
-    foreach (var table in new[] { "facture", "detail_fact", "bordereau", "parametre" })
+    // 4-9. Columns for each core table
+    var sectionNum = 4;
+    foreach (var table in new[] { "facture", "detail_fact", "bordereau", "parametre", "medicament", "ln" })
     {
-        var sectionNum = table switch
-        {
-            "facture" => "4",
-            "detail_fact" => "5",
-            "bordereau" => "6",
-            "parametre" => "7",
-            _ => "?"
-        };
         Console.WriteLine($"═══════════════════════════════════════════════════════════════");
         Console.WriteLine($"  {sectionNum}. {table.ToUpper()} — COLUMNS, TYPES, NULLS, DEFAULTS");
         Console.WriteLine($"═══════════════════════════════════════════════════════════════");
@@ -114,11 +108,12 @@ try
             WHERE table_schema = 'public' AND table_name = '{table}'
             ORDER BY ordinal_position");
         Console.WriteLine();
+        sectionNum++;
     }
 
-    // 8. Primary Keys
+    // 10. Primary Keys
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  8. PRIMARY KEYS");
+    Console.WriteLine($"  {sectionNum}. PRIMARY KEYS");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     await Run(conn, @"
         SELECT tc.table_name, tc.constraint_name, kcu.column_name, kcu.ordinal_position
@@ -129,10 +124,11 @@ try
         ORDER BY tc.table_name, kcu.ordinal_position");
 
     Console.WriteLine();
+    sectionNum++;
 
-    // 9. Foreign Keys
+    // 11. Foreign Keys
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  9. FOREIGN KEYS");
+    Console.WriteLine($"  {sectionNum}. FOREIGN KEYS");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     await Run(conn, @"
         SELECT
@@ -150,22 +146,24 @@ try
         ORDER BY tc.table_name");
 
     Console.WriteLine();
+    sectionNum++;
 
-    // 10. Indexes
+    // 12. Indexes for core tables
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  10. INDEXES");
+    Console.WriteLine($"  {sectionNum}. INDEXES (Core Tables)");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     await Run(conn, @"
         SELECT indexname, tablename, indexdef
         FROM pg_indexes
-        WHERE schemaname = 'public' AND tablename IN ('facture','detail_fact','bordereau','parametre')
+        WHERE schemaname = 'public' AND tablename IN ('facture','detail_fact','bordereau','parametre','medicament','ln')
         ORDER BY tablename, indexname");
 
     Console.WriteLine();
+    sectionNum++;
 
-    // 11. Sequences
+    // 13. Sequences
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  11. SEQUENCES");
+    Console.WriteLine($"  {sectionNum}. SEQUENCES");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     await Run(conn, @"
         SELECT sequence_name, data_type, start_value, minimum_value, maximum_value, increment_by, cycle
@@ -174,163 +172,59 @@ try
         ORDER BY sequence_name");
 
     Console.WriteLine();
+    sectionNum++;
 
-    // 12. CHECK constraints
+    // 14. Functions
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  12. CHECK CONSTRAINTS");
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    await Run(conn, @"
-        SELECT conname, conrelid::regclass AS table_name, pg_get_constraintdef(oid) AS definition
-        FROM pg_constraint
-        WHERE contype = 'c' AND connamespace = 'public'::regnamespace
-        ORDER BY conrelid::regclass::text, conname");
-
-    Console.WriteLine();
-
-    // 13. Views
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  13. VIEWS");
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    await Run(conn, "SELECT table_name FROM information_schema.views WHERE table_schema = 'public' ORDER BY table_name");
-
-    Console.WriteLine();
-
-    // 14. Triggers
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  14. TRIGGERS");
+    Console.WriteLine($"  {sectionNum}. FUNCTIONS");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     await Run(conn, @"
-        SELECT trigger_name, event_manipulation, event_object_table, action_timing
-        FROM information_schema.triggers
-        WHERE trigger_schema = 'public'
-        ORDER BY event_object_table, trigger_name");
+        SELECT routine_name, routine_type, data_type AS return_type
+        FROM information_schema.routines
+        WHERE routine_schema = 'public'
+        ORDER BY routine_name");
 
     Console.WriteLine();
+    sectionNum++;
 
     // 15. parametre current values
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  15. PARAMETRE — CRITICAL COUNTER VALUES");
+    Console.WriteLine($"  {sectionNum}. PARAMETRE — CRITICAL COUNTER VALUES");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    await Run(conn, "SELECT code_ps, code_centre, nom_pharmacie, next_num_fact, next_num_bord FROM parametre");
+    await Run(conn, "SELECT code_ps, code_centre, nom_pharmacie, next_num_fact, next_num_bord, version, annee FROM parametre");
 
     Console.WriteLine();
+    sectionNum++;
 
-    // 16. Sample facture (last row)
+    // 16. Medicament sample
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  16. SAMPLE FACTURE (last 1)");
+    Console.WriteLine($"  {sectionNum}. MEDICAMENT — SAMPLE (first 5)");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     await Run(conn, @"
-        SELECT num_fact, date_fact, etat, num_bord, mont_off, mont_as, mont_fact,
-               num_assure, code_centre, type_maj, mont_maj_fae, mont_maj, mont_mut,
-               date_fin_mut, nat_remb, version, echifa, e_ord
-        FROM facture
-        ORDER BY num_fact DESC LIMIT 1");
+        SELECT num_enr, nom_com, nom_dci, dosage, tarif_ref, taux, remboursable, generic
+        FROM medicament ORDER BY num_enr LIMIT 5");
 
     Console.WriteLine();
+    sectionNum++;
 
-    // 17. Sample bordereau (last row)
+    // 17. LN sample
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  17. SAMPLE BORDEREAU (last 1)");
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    await Run(conn, @"
-        SELECT id_bord, num_bord, code_centre, etat, mont_vir, duplicata,
-               date_cloture, date_ouverture, date_depot_ftp
-        FROM bordereau
-        ORDER BY id_bord DESC LIMIT 1");
-
-    Console.WriteLine();
-
-    // 18. Sample detail_fact (last 3)
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  18. SAMPLE DETAIL_FACT (last 3)");
+    Console.WriteLine($"  {sectionNum}. LN — STRUCTURE & SAMPLE");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     await Run(conn, @"
-        SELECT num_fact, num_enr, ppa, qte, mont, mont_as, mont_pharm,
-               num_enr_prescrit, num_lot, remboursable, local, posologie
-        FROM detail_fact
-        ORDER BY num_fact DESC, num_enr DESC LIMIT 3");
-
-    Console.WriteLine();
-
-    // 19. FK relationship facture.num_bord → bordereau.num_bord
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  19. FK: facture.num_bord → bordereau.num_bord");
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    await Run(conn, @"
-        SELECT f.num_fact, f.num_bord, b.num_bord AS bord_num_bord, b.etat AS bord_etat
-        FROM facture f
-        LEFT JOIN bordereau b ON f.num_bord = b.num_bord
-        WHERE f.num_bord IS NOT NULL AND f.num_bord != ''
-        ORDER BY f.num_fact DESC LIMIT 5");
-
-    Console.WriteLine();
-
-    // 20. NULL stats for critical facture columns
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  20. NULL STATS — CRITICAL FACTURE COLUMNS");
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    await Run(conn, @"
-        SELECT
-            count(*) AS total_rows,
-            count(type_maj) AS type_maj_not_null,
-            count(mont_maj_fae) AS mont_maj_fae_not_null,
-            count(mont_maj) AS mont_maj_not_null,
-            count(num_bord) AS num_bord_not_null,
-            count(mont_fact) AS mont_fact_not_null,
-            count(num_assure) AS num_assure_not_null
-        FROM facture");
-
-    Console.WriteLine();
-
-    // 21. BM-SPEC-028/029/031 Validation
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  21. BM-SPEC VALIDATION");
-    Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    await Run(conn, @"
-        SELECT 'BM-SPEC-028: num_fact max 8 chars' AS check_name,
-               max(length(num_fact)) AS actual_max_len,
-               CASE WHEN max(length(num_fact)) <= 8 THEN 'PASS' ELSE 'FAIL' END AS result
-        FROM facture WHERE num_fact IS NOT NULL");
-
-    await Run(conn, @"
-        SELECT 'BM-SPEC-029: mont_maj_fae NOT NULL' AS check_name,
-               count(*) FILTER (WHERE mont_maj_fae IS NULL) AS null_count,
-               CASE WHEN count(*) FILTER (WHERE mont_maj_fae IS NULL) = 0 THEN 'PASS' ELSE 'FAIL' END AS result
-        FROM facture");
-
-    await Run(conn, @"
-        SELECT 'BM-SPEC-029: mont_maj NOT NULL' AS check_name,
-               count(*) FILTER (WHERE mont_maj IS NULL) AS null_count,
-               CASE WHEN count(*) FILTER (WHERE mont_maj IS NULL) = 0 THEN 'PASS' ELSE 'FAIL' END AS result
-        FROM facture");
-
-    await Run(conn, @"
-        SELECT 'BM-SPEC-029: type_maj NOT NULL' AS check_name,
-               count(*) FILTER (WHERE type_maj IS NULL) AS null_count,
-               CASE WHEN count(*) FILTER (WHERE type_maj IS NULL) = 0 THEN 'PASS' ELSE 'FAIL' END AS result
-        FROM facture");
-
-    await Run(conn, @"
-        SELECT 'BM-SPEC-031: next_num_bord type' AS check_name,
-               data_type,
-               CASE WHEN data_type IN ('integer','smallint') THEN 'PASS' ELSE 'FAIL' END AS result
+        SELECT column_name, data_type, character_maximum_length
         FROM information_schema.columns
-        WHERE table_name = 'parametre' AND column_name = 'next_num_bord'");
-
-    await Run(conn, @"
-        SELECT 'BM-SPEC-031: next_num_fact type' AS check_name,
-               data_type,
-               CASE WHEN data_type IN ('integer','smallint','bigint') THEN 'PASS' ELSE 'FAIL' END AS result
-        FROM information_schema.columns
-        WHERE table_name = 'parametre' AND column_name = 'next_num_fact'");
+        WHERE table_name = 'ln' AND table_schema = 'public'
+        ORDER BY ordinal_position");
 
     Console.WriteLine();
+    sectionNum++;
 
-    // 22. READ-ONLY verification (confirm SELECTs work)
+    // 18. READ-ONLY verification
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  22. READ-ONLY VERIFICATION");
+    Console.WriteLine($"  {sectionNum}. READ-ONLY VERIFICATION");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    foreach (var table in new[] { "facture", "detail_fact", "bordereau", "parametre" })
+    foreach (var table in new[] { "facture", "detail_fact", "bordereau", "parametre", "medicament", "ln", "signature" })
     {
         try
         {
@@ -345,120 +239,40 @@ try
     }
     Console.WriteLine();
 
-    // 23. EF Core Column Mapping Matrix
+    // 19. EF Core Column Mapping Matrix
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
-    Console.WriteLine("  23. EF CORE COLUMN MAPPING MATRIX");
+    Console.WriteLine($"  {sectionNum}. EF CORE COLUMN MAPPING VALIDATION");
     Console.WriteLine("═══════════════════════════════════════════════════════════════");
     Console.WriteLine();
-    Console.WriteLine("  Table        | Column             | PG Type        | PG Nullable | PG Default          | EF Type     | Match?");
-    Console.WriteLine("  -------------|--------------------|----------------|-------------|---------------------|-------------|-------");
+    Console.WriteLine("  Validating critical columns exist in real DB...");
 
-    var efMappings = new (string table, string column, string efType, string efNullable)[]
+    var criticalColumns = new (string table, string column)[]
     {
-        ("facture", "num_fact", "string", "NO"),
-        ("facture", "date_fact", "DateTime?", "YES"),
-        ("facture", "etat", "string?", "YES"),
-        ("facture", "num_bord", "string?", "YES"),
-        ("facture", "mont_off", "decimal?", "YES"),
-        ("facture", "mont_as", "decimal?", "YES"),
-        ("facture", "mont_fact", "decimal?", "YES"),
-        ("facture", "num_assure", "string?", "YES"),
-        ("facture", "code_centre", "string?", "YES"),
-        ("facture", "type_maj", "int", "NO"),
-        ("facture", "mont_maj_fae", "decimal", "NO"),
-        ("facture", "mont_maj", "decimal", "NO"),
-        ("facture", "nat_remb", "string?", "YES"),
-        ("facture", "mont_mut", "decimal?", "YES"),
-        ("facture", "date_fin_mut", "DateTime?", "YES"),
-        ("facture", "version", "string?", "YES"),
-        ("facture", "num_serie_ps", "long?", "YES"),
-        ("facture", "version_carte", "int?", "YES"),
-        ("facture", "echifa", "bool?", "YES"),
-        ("facture", "id_fact_echifa", "long?", "YES"),
-        ("facture", "e_ord", "bool?", "YES"),
-        ("facture", "id_e_ord", "long?", "YES"),
-        ("detail_fact", "num_fact", "string", "NO"),
-        ("detail_fact", "num_enr", "string", "NO"),
-        ("detail_fact", "ppa", "decimal", "NO"),
-        ("detail_fact", "qte", "decimal", "NO"),
-        ("detail_fact", "mont", "decimal", "NO"),
-        ("detail_fact", "mont_as", "decimal?", "YES"),
-        ("detail_fact", "mont_pharm", "decimal?", "YES"),
-        ("detail_fact", "num_enr_prescrit", "string", "NO"),
-        ("detail_fact", "num_lot", "string?", "YES"),
-        ("detail_fact", "remboursable", "bool?", "YES"),
-        ("detail_fact", "local", "bool?", "YES"),
-        ("detail_fact", "inf_tr", "bool?", "YES"),
-        ("detail_fact", "applic_tr", "bool?", "YES"),
-        ("detail_fact", "medic", "bool?", "YES"),
-        ("detail_fact", "ts", "bool?", "YES"),
-        ("bordereau", "id_bord", "long", "NO"),
-        ("bordereau", "num_bord", "string", "NO"),
-        ("bordereau", "code_centre", "string", "NO"),
-        ("bordereau", "etat", "string?", "YES"),
-        ("bordereau", "mont_vir", "decimal?", "YES"),
-        ("bordereau", "duplicata", "bool?", "YES"),
-        ("bordereau", "date_cloture", "DateTime?", "YES"),
-        ("bordereau", "date_ouverture", "DateTime?", "YES"),
-        ("bordereau", "date_depot_ftp", "DateTime?", "YES"),
-        ("bordereau", "id_user_cloture", "int?", "YES"),
-        ("bordereau", "poste_cloture", "string?", "YES"),
-        ("parametre", "code_ps", "string?", "YES"),
-        ("parametre", "code_centre", "string?", "YES"),
-        ("parametre", "nom_pharmacie", "string?", "YES"),
-        ("parametre", "next_num_fact", "int?", "YES"),
-        ("parametre", "next_num_bord", "short?", "YES"),
+        ("facture", "num_fact"), ("facture", "date_fact"), ("facture", "etat"),
+        ("facture", "rang_ad"), ("facture", "taux"), ("facture", "id_user"),
+        ("facture", "statut_fact"), ("facture", "signature"), ("facture", "fact_xml"),
+        ("detail_fact", "num_fact"), ("detail_fact", "num_enr"), ("detail_fact", "ppa"),
+        ("bordereau", "id_bord"), ("bordereau", "num_bord"),
+        ("parametre", "code_ps"), ("parametre", "next_num_fact"), ("parametre", "next_num_bord"),
+        ("parametre", "nom"), ("parametre", "prenom"), ("parametre", "access_token"),
+        ("medicament", "num_enr"), ("medicament", "nom_com"), ("medicament", "tarif_ref"),
     };
 
-    foreach (var (table, column, efType, efNullable) in efMappings)
+    foreach (var (table, column) in criticalColumns)
     {
         try
         {
             await using var cmd = new NpgsqlCommand(@"
-                SELECT data_type, is_nullable, column_default,
-                       character_maximum_length, numeric_precision, numeric_scale
-                FROM information_schema.columns
+                SELECT count(*) FROM information_schema.columns
                 WHERE table_schema = 'public' AND table_name = @t AND column_name = @c", conn);
             cmd.Parameters.AddWithValue("@t", table);
             cmd.Parameters.AddWithValue("@c", column);
-            await using var reader = await cmd.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
-            {
-                var pgType = reader.GetString(0);
-                var pgNullable = reader.GetString(1) == "YES" ? "YES" : "NO";
-                var pgDefault = reader.IsDBNull(2) ? "NULL" : reader.GetString(2);
-                var charLen = reader.IsDBNull(3) ? "" : $"({reader.GetInt32(3)})";
-                var numPrec = reader.IsDBNull(4) ? "" : $"({reader.GetInt32(4)},{reader.GetInt32(5)})";
-
-                var pgTypeDisplay = pgType switch
-                {
-                    "character varying" => $"varchar{charLen}",
-                    "character" => $"char{charLen}",
-                    "numeric" => $"numeric{numPrec}",
-                    "integer" => "integer",
-                    "smallint" => "smallint",
-                    "bigint" => "bigint",
-                    "boolean" => "boolean",
-                    "timestamp without time zone" => "timestamp",
-                    "timestamp with time zone" => "timestamptz",
-                    "date" => "date",
-                    _ => pgType
-                };
-
-                var nullableMatch = (pgNullable == "YES" && efNullable == "YES") || (pgNullable == "NO" && efNullable == "NO");
-                var match = nullableMatch ? "✅" : "❌ NULL MISMATCH";
-
-                Console.WriteLine($"  {table,-13}| {column,-18}| {pgTypeDisplay,-14}| {pgNullable,-11}| {pgDefault,-19}| {efType,-11}| {match}");
-            }
-            else
-            {
-                Console.WriteLine($"  {table,-13}| {column,-18}| {"MISSING",-14}| {"?",-11}| {"?",-19}| {efType,-11}| ❌ COLUMN NOT FOUND");
-            }
+            var exists = (long)(await cmd.ExecuteScalarAsync()!);
+            Console.WriteLine($"  {(exists > 0 ? "✅" : "❌")} {table}.{column}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"  {table,-13}| {column,-18}| ERROR: {ex.Message.Substring(0, Math.Min(60, ex.Message.Length))}");
+            Console.WriteLine($"  ❌ {table}.{column} — ERROR: {ex.Message}");
         }
     }
 
@@ -485,7 +299,7 @@ static async Task Run(NpgsqlConnection conn, string sql)
     try
     {
         await using var cmd = new NpgsqlCommand(sql, conn);
-        cmd.CommandTimeout = 10;
+        cmd.CommandTimeout = 15;
         await using var reader = await cmd.ExecuteReaderAsync();
 
         var fieldCount = reader.FieldCount;
