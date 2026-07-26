@@ -42,11 +42,18 @@ public partial class MainWindow : Window
     private UserControl CreateChifaView<T>() where T : UserControl, new()
     {
         var view = new T();
-        var viewModel = App.ServiceProvider?.GetService(typeof(ChifaDashboardViewModel));
-        if (viewModel != null)
+
+        if (view is ChifaInvoicePreparationView)
         {
-            view.DataContext = viewModel;
+            var vm = App.ServiceProvider?.GetService(typeof(ChifaInvoicePreparationViewModel));
+            if (vm != null) view.DataContext = vm;
         }
+        else
+        {
+            var vm = App.ServiceProvider?.GetService(typeof(ChifaDashboardViewModel));
+            if (vm != null) view.DataContext = vm;
+        }
+
         return view;
     }
 

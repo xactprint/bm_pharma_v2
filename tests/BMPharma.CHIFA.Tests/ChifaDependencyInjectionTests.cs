@@ -34,16 +34,16 @@ public class ChifaDependencyInjectionTests
         var provider = services.BuildServiceProvider();
 
         var invoiceService = provider.GetRequiredService<IChifaInvoiceService>();
-        invoiceService.Should().BeOfType<ChifaInvoiceServiceStub>();
+        invoiceService.Should().BeOfType<FakeChifaIntegrationProvider>();
 
         var bordereauService = provider.GetRequiredService<IChifaBordereauService>();
-        bordereauService.Should().BeOfType<ChifaBordereauServiceStub>();
+        bordereauService.Should().BeOfType<FakeChifaIntegrationProvider>();
 
         var signingService = provider.GetRequiredService<IChifaSigningService>();
-        signingService.Should().BeOfType<ChifaSigningServiceStub>();
+        signingService.Should().BeOfType<FakeChifaIntegrationProvider>();
 
         var tokenService = provider.GetRequiredService<IChifaTokenService>();
-        tokenService.Should().BeOfType<ChifaTokenServiceStub>();
+        tokenService.Should().BeOfType<FakeChifaIntegrationProvider>();
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class ChifaDependencyInjectionTests
         var provider = services.BuildServiceProvider();
 
         var invoiceService = provider.GetRequiredService<IChifaInvoiceService>();
-        invoiceService.Should().BeOfType<ChifaInvoiceServiceStub>();
+        invoiceService.Should().BeOfType<FakeChifaIntegrationProvider>();
     }
 
     [Fact]

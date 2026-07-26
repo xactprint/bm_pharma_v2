@@ -163,13 +163,13 @@ public class ChifaDashboardTests
         modeProvider.IsReadOnly.Should().BeTrue();
 
         var integrationService = provider.GetRequiredService<IChifaIntegrationService>();
-        integrationService.Should().BeOfType<ChifaIntegrationServiceStub>();
+        integrationService.Should().BeOfType<FakeChifaIntegrationProvider>();
 
         var invoiceService = provider.GetRequiredService<IChifaInvoiceService>();
-        invoiceService.Should().BeOfType<ChifaInvoiceServiceStub>();
+        invoiceService.Should().BeOfType<FakeChifaIntegrationProvider>();
 
         var bordereauService = provider.GetRequiredService<IChifaBordereauService>();
-        bordereauService.Should().BeOfType<ChifaBordereauServiceStub>();
+        bordereauService.Should().BeOfType<FakeChifaIntegrationProvider>();
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public class ChifaDashboardTests
 
         var integrationService = provider.GetRequiredService<IChifaIntegrationService>();
         var health = await integrationService.GetHealthStatusAsync();
-        health.IsOnline.Should().BeFalse("ReadOnly mode should report offline");
+        health.IsOnline.Should().BeTrue("ReadOnly mode with FakeChifaIntegrationProvider should simulate online");
 
         var tokenService = provider.GetRequiredService<IChifaTokenService>();
         var tokenPresent = await tokenService.IsTokenPresentAsync();

@@ -37,12 +37,30 @@ public class FakeChifaIntegrationProvider : IChifaIntegrationService, IChifaInvo
         _bordereauCounter = 0;
         _isOnline = true;
         _tokenPresent = false;
+        _simulateSigningRequired = false;
+        _simulateCloseFails = false;
     }
 
     public void SimulateOffline() => _isOnline = false;
     public void SimulateOnline() => _isOnline = true;
     public void SimulateTokenPresent() => _tokenPresent = true;
     public void SimulateTokenAbsent() => _tokenPresent = false;
+    public int InvoicesCreated => _invoices.Count;
+
+    public void SimulateInvoiceExists(string numFact)
+    {
+        _invoices[numFact] = new ChifaInvoiceRequest { NumFact = numFact, Lines = new List<ChifaInvoiceLineRequest>() };
+    }
+
+    public void SimulateInvoiceVisible(string numFact) => SimulateInvoiceExists(numFact);
+
+    private bool _simulateSigningRequired = false;
+    public void SimulateSigningRequired() => _simulateSigningRequired = true;
+    public void SimulateSigningOk() => _simulateSigningRequired = false;
+
+    private bool _simulateCloseFails = false;
+    public void SimulateCloseFails() => _simulateCloseFails = true;
+    public void SimulateCloseOk() => _simulateCloseFails = false;
 
     public Task<bool> IsChifaAvailableAsync(CancellationToken cancellationToken = default)
     {
@@ -220,6 +238,18 @@ public class FakeChifaIntegrationProvider : IChifaIntegrationService, IChifaInvo
             });
         }
 
+        if (_simulateSigningRequired)
+        {
+            entry.Result = "BLOCKED";
+            entry.Error = "Simulated signing required failure";
+            _auditLog.Add(entry);
+            return Task.FromResult(new ChifaBordereauResult
+            {
+                Success = false,
+                ErrorMessage = "Simulated: Signing requires CHIFA-OFFICINE with the physical token."
+            });
+        }
+
         _signingStatuses[numBord] = ChifaSigningStatus.Signed;
 
         entry.Result = "SUCCESS";
@@ -257,6 +287,18 @@ public class FakeChifaIntegrationProvider : IChifaIntegrationService, IChifaInvo
             {
                 Success = false,
                 ErrorMessage = $"Bordereau {numBord} not found in CHIFA"
+            });
+        }
+
+        if (_simulateCloseFails)
+        {
+            entry.Result = "BLOCKED";
+            entry.Error = "Simulated close failure";
+            _auditLog.Add(entry);
+            return Task.FromResult(new ChifaBordereauResult
+            {
+                Success = false,
+                ErrorMessage = "Simulated: Bordereau must be signed before closure"
             });
         }
 

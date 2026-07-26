@@ -28,6 +28,8 @@ public static class DependencyInjection
         services.AddScoped<ChifaInvoiceMapper>();
         services.AddScoped<ChifaBordereauMapper>();
         services.AddScoped<ChifaWorkflowStateMachine>();
+        services.AddSingleton<FakeChifaIntegrationProvider>();
+        services.AddScoped<IChifaInvoiceWorkflowService, ChifaInvoiceWorkflowService>();
 
         var usePostgres = !modeProvider.IsReadOnly;
 
@@ -48,11 +50,11 @@ public static class DependencyInjection
         }
         else
         {
-            services.AddScoped<IChifaIntegrationService, ChifaIntegrationServiceStub>();
-            services.AddScoped<IChifaInvoiceService, ChifaInvoiceServiceStub>();
-            services.AddScoped<IChifaBordereauService, ChifaBordereauServiceStub>();
-            services.AddScoped<IChifaTokenService, ChifaTokenServiceStub>();
-            services.AddScoped<IChifaSigningService, ChifaSigningServiceStub>();
+            services.AddScoped<IChifaIntegrationService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaInvoiceService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaBordereauService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaTokenService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaSigningService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
             services.AddScoped<IChifaAuditService, ChifaAuditService>();
         }
 
@@ -81,15 +83,17 @@ public static class DependencyInjection
         services.AddScoped<ChifaInvoiceMapper>();
         services.AddScoped<ChifaBordereauMapper>();
         services.AddScoped<ChifaWorkflowStateMachine>();
+        services.AddSingleton<FakeChifaIntegrationProvider>();
+        services.AddScoped<IChifaInvoiceWorkflowService, ChifaInvoiceWorkflowService>();
         services.AddScoped<IChifaAuditService, ChifaAuditService>();
 
         if (modeProvider.IsReadOnly)
         {
-            services.AddScoped<IChifaIntegrationService, ChifaIntegrationServiceStub>();
-            services.AddScoped<IChifaInvoiceService, ChifaInvoiceServiceStub>();
-            services.AddScoped<IChifaBordereauService, ChifaBordereauServiceStub>();
-            services.AddScoped<IChifaTokenService, ChifaTokenServiceStub>();
-            services.AddScoped<IChifaSigningService, ChifaSigningServiceStub>();
+            services.AddScoped<IChifaIntegrationService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaInvoiceService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaBordereauService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaTokenService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaSigningService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
         }
         else
         {
@@ -98,11 +102,11 @@ public static class DependencyInjection
             services.AddDbContext<ChifaWriteDbContext>(options =>
                 options.UseInMemoryDatabase("ChifaWriteTestDb"));
 
-            services.AddScoped<IChifaIntegrationService, ChifaIntegrationServiceStub>();
+            services.AddScoped<IChifaIntegrationService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
             services.AddScoped<IChifaInvoiceService, ChifaPostgresInvoiceService>();
             services.AddScoped<IChifaBordereauService, ChifaPostgresBordereauService>();
-            services.AddScoped<IChifaTokenService, ChifaTokenServiceStub>();
-            services.AddScoped<IChifaSigningService, ChifaSigningServiceStub>();
+            services.AddScoped<IChifaTokenService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaSigningService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
         }
 
         return services;
