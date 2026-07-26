@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\src\BMPharma.CHIFA\BMPharma.CHIFA.csproj" />
     <ProjectReference Include="..\..\src\BMPharma.Domain\BMPharma.Domain.csproj" />
     <ProjectReference Include="..\..\src\BMPharma.Application\BMPharma.Application.csproj" />
+    <ProjectReference Include="..\..\src\BMPharma.Persistence.PostgreSQL\BMPharma.Persistence.PostgreSQL.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
