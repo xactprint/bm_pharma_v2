@@ -1,6 +1,7 @@
 <Window x:Class="BMPharma.UI.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:BMPharma.UI.ViewModels"
         Title="BM Pharma v2" 
         Height="800" Width="1280"
         MinHeight="600" MinWidth="1024"
@@ -43,33 +44,51 @@
             <!-- Navigation Sidebar -->
             <Border Grid.Column="0" Background="#E8F5E9" BorderBrush="#C8E6C9" BorderThickness="0,0,1,0">
                 <StackPanel x:Name="NavPanel" Margin="0,8,0,0">
-                    <Button Content="Products" Tag="Products" Click="NavButton_Click" 
+                    <Button Content="Accueil" Tag="Home" Click="NavButton_Click" 
+                            Padding="16,10" HorizontalContentAlignment="Left"
+                            BorderThickness="0" Background="Transparent" FontSize="14" />
+                    <Button Content="Produits" Tag="Products" Click="NavButton_Click" 
                             Padding="16,10" HorizontalContentAlignment="Left"
                             BorderThickness="0" Background="Transparent" FontSize="14" />
                     <Button Content="Stock" Tag="Stock" Click="NavButton_Click"
                             Padding="16,10" HorizontalContentAlignment="Left"
                             BorderThickness="0" Background="Transparent" FontSize="14" />
-                    <Button Content="Sales" Tag="Sales" Click="NavButton_Click"
+                    <Button Content="Ventes" Tag="Sales" Click="NavButton_Click"
                             Padding="16,10" HorizontalContentAlignment="Left"
                             BorderThickness="0" Background="Transparent" FontSize="14" />
-                    <Button Content="Customers" Tag="Customers" Click="NavButton_Click"
+                    <Button Content="Clients" Tag="Customers" Click="NavButton_Click"
                             Padding="16,10" HorizontalContentAlignment="Left"
                             BorderThickness="0" Background="Transparent" FontSize="14" />
                     <Button Content="Bordereau" Tag="Bordereau" Click="NavButton_Click"
                             Padding="16,10" HorizontalContentAlignment="Left"
                             BorderThickness="0" Background="Transparent" FontSize="14" />
-                    <Button Content="Reports" Tag="Reports" Click="NavButton_Click"
+                    <Button Content="Rapports" Tag="Reports" Click="NavButton_Click"
                             Padding="16,10" HorizontalContentAlignment="Left"
                             BorderThickness="0" Background="Transparent" FontSize="14" />
-                    <Button Content="Settings" Tag="Settings" Click="NavButton_Click"
+                    <Button Content="Paramètres" Tag="Settings" Click="NavButton_Click"
                             Padding="16,10" HorizontalContentAlignment="Left"
                             BorderThickness="0" Background="Transparent" FontSize="14" />
+
+                    <!-- Separator -->
+                    <Separator Margin="8,8" Background="#C8E6C9" />
+
+                    <!-- CHIFA Integration -->
+                    <Button Content="CHIFA Dashboard" Tag="ChifaDashboard" Click="NavButton_Click"
+                            Padding="16,10" HorizontalContentAlignment="Left"
+                            BorderThickness="0" Background="Transparent" FontSize="14"
+                            FontWeight="Bold" Foreground="#1B5E20" />
+                    <Button Content="Préparation Factures" Tag="ChifaInvoicePreparation" Click="NavButton_Click"
+                            Padding="16,10" HorizontalContentAlignment="Left"
+                            BorderThickness="0" Background="Transparent" FontSize="13" />
+                    <Button Content="Statut Bordereau" Tag="ChifaBordereauStatus" Click="NavButton_Click"
+                            Padding="16,10" HorizontalContentAlignment="Left"
+                            BorderThickness="0" Background="Transparent" FontSize="13" />
                 </StackPanel>
             </Border>
 
             <!-- Content Area -->
             <ContentControl x:Name="MainContent" Grid.Column="1" Margin="8">
-                <TextBlock Text="Welcome to BM Pharma v2" 
+                <TextBlock Text="Bienvenue dans BM Pharma v2" 
                            FontSize="24" HorizontalAlignment="Center" 
                            VerticalAlignment="Center" Foreground="#4CAF50" />
             </ContentControl>
@@ -78,8 +97,8 @@
         <!-- Status Bar -->
         <Border Grid.Row="2" Background="#F5F5F5" Padding="12,4" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
             <DockPanel>
-                <TextBlock x:Name="StatusText" Text="Ready" FontSize="12" Foreground="#757575" />
-                <TextBlock x:Name="ChifaStatusText" Text="CHIFA: Disconnected" 
+                <TextBlock x:Name="StatusText" Text="Prêt" FontSize="12" Foreground="#757575" />
+                <TextBlock x:Name="ChifaStatusText" Text="CHIFA: Déconnecté" 
                            FontSize="12" Foreground="#F44336" HorizontalAlignment="Right" />
             </DockPanel>
         </Border>

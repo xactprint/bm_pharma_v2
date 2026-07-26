@@ -10,79 +10,365 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0" Text="CHIFA Integration Dashboard"
-                   FontSize="22" FontWeight="Bold" Margin="0,0,0,16"
-                   Foreground="#1B5E20" />
+        <!-- Row 0: Header -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="Tableau de bord CHIFA" FontSize="22" FontWeight="Bold"
+                       Foreground="#1B5E20" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Actualiser" Command="{Binding RefreshStatusCommand}"
+                        Padding="12,6" Margin="0,0,8,0" />
+                <TextBlock Text="{Binding IntegrationMode}" FontSize="14" FontWeight="Bold"
+                           VerticalAlignment="Center" Margin="8,0,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#FF9800" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
+                                    <Setter Property="Foreground" Value="#FF9800" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Text="{Binding ModeDescription}" FontSize="12" Foreground="#757575"
+                           VerticalAlignment="Center" Margin="8,0,0,0" />
+            </StackPanel>
+        </DockPanel>
 
-        <!-- Status Cards -->
-        <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,16">
-            <!-- Connection Status -->
-            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="12" Margin="4" CornerRadius="4">
+        <!-- Row 1: Status Cards -->
+        <UniformGrid Grid.Row="1" Columns="6" Margin="0,0,0,12">
+            <!-- PostgreSQL -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="10" Margin="3" CornerRadius="4">
                 <StackPanel>
-                    <TextBlock Text="PostgreSQL" FontSize="12" Foreground="#757575" />
-                    <TextBlock Text="{Binding ConnectionStatus}" FontSize="16" FontWeight="Bold"
-                               Foreground="#F44336" />
+                    <TextBlock Text="PostgreSQL" FontSize="11" Foreground="#757575" />
+                    <TextBlock Text="{Binding ConnectionStatus}" FontSize="14" FontWeight="Bold" />
+                    <Border Width="8" Height="8" CornerRadius="4" Margin="0,4,0,0"
+                            HorizontalAlignment="Left">
+                        <Border.Background>
+                            <SolidColorBrush Color="{Binding ConnectionStatusColor}" />
+                        </Border.Background>
+                    </Border>
                 </StackPanel>
             </Border>
 
-            <!-- Integration Mode -->
-            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="12" Margin="4" CornerRadius="4">
+            <!-- CHIFA-OFFICINE -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="10" Margin="3" CornerRadius="4">
                 <StackPanel>
-                    <TextBlock Text="Mode" FontSize="12" Foreground="#757575" />
-                    <TextBlock Text="{Binding IntegrationMode}" FontSize="16" FontWeight="Bold"
-                               Foreground="#FF9800" />
+                    <TextBlock Text="CHIFA-OFFICINE" FontSize="11" Foreground="#757575" />
+                    <TextBlock Text="{Binding ChifaStatus}" FontSize="14" FontWeight="Bold" />
+                    <Border Width="8" Height="8" CornerRadius="4" Margin="0,4,0,0"
+                            HorizontalAlignment="Left">
+                        <Border.Background>
+                            <SolidColorBrush Color="{Binding ChifaStatusColor}" />
+                        </Border.Background>
+                    </Border>
                 </StackPanel>
             </Border>
 
-            <!-- Invoices Prepared -->
-            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="12" Margin="4" CornerRadius="4">
+            <!-- Token -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="10" Margin="3" CornerRadius="4">
                 <StackPanel>
-                    <TextBlock Text="Invoices Prepared" FontSize="12" Foreground="#757575" />
-                    <TextBlock Text="{Binding PreparedInvoiceCount}" FontSize="16" FontWeight="Bold"
-                               Foreground="#4CAF50" />
+                    <TextBlock Text="Token" FontSize="11" Foreground="#757575" />
+                    <TextBlock Text="{Binding TokenStatus}" FontSize="14" FontWeight="Bold" />
+                    <Border Width="8" Height="8" CornerRadius="4" Margin="0,4,0,0"
+                            HorizontalAlignment="Left">
+                        <Border.Background>
+                            <SolidColorBrush Color="{Binding TokenStatusColor}" />
+                        </Border.Background>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Signature -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="10" Margin="3" CornerRadius="4">
+                <StackPanel>
+                    <TextBlock Text="Signature" FontSize="11" Foreground="#757575" />
+                    <TextBlock Text="{Binding SigningStatus}" FontSize="14" FontWeight="Bold" />
+                    <Border Width="8" Height="8" CornerRadius="4" Margin="0,4,0,0"
+                            HorizontalAlignment="Left">
+                        <Border.Background>
+                            <SolidColorBrush Color="{Binding SigningStatusColor}" />
+                        </Border.Background>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Factures -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="10" Margin="3" CornerRadius="4">
+                <StackPanel>
+                    <TextBlock Text="Factures" FontSize="11" Foreground="#757575" />
+                    <TextBlock FontSize="14" FontWeight="Bold">
+                        <Run Text="{Binding PreparedInvoiceCount, Mode=OneWay}" />
+                        <Run Text=" prêtes / " />
+                        <Run Text="{Binding SynchronizedInvoiceCount, Mode=OneWay}" />
+                        <Run Text=" sync" />
+                    </TextBlock>
                 </StackPanel>
             </Border>
 
             <!-- Bordereaux -->
-            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="12" Margin="4" CornerRadius="4">
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="10" Margin="3" CornerRadius="4">
                 <StackPanel>
-                    <TextBlock Text="Bordereaux" FontSize="12" Foreground="#757575" />
-                    <TextBlock Text="{Binding BordereauCount}" FontSize="16" FontWeight="Bold"
-                               Foreground="#2196F3" />
+                    <TextBlock Text="Bordereaux" FontSize="11" Foreground="#757575" />
+                    <TextBlock FontSize="14" FontWeight="Bold">
+                        <Run Text="{Binding BordereauPreparedCount, Mode=OneWay}" />
+                        <Run Text=" préparé(s)" />
+                    </TextBlock>
+                    <TextBlock Text="{Binding NextBordereauNumber}" FontSize="11" Foreground="#757575" />
                 </StackPanel>
             </Border>
         </UniformGrid>
 
-        <!-- Content Area -->
-        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4">
-            <Grid>
+        <!-- Row 2: Main Content Area -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Workflow Steps -->
+            <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                    Margin="0,0,8,0" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Étapes du workflow" FontSize="16" FontWeight="Bold"
+                               Foreground="#1B5E20" Margin="0,0,0,12" />
+
+                    <!-- Step 1: Vente -->
+                    <Border Padding="8" Margin="0,0,0,6" CornerRadius="3" Background="#F5F5F5">
+                        <StackPanel>
+                            <TextBlock FontSize="12" FontWeight="SemiBold">
+                                <Run Text="1. Vente" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding WorkflowStep1Status}" FontSize="11" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Step 2: Préparation CHIFA -->
+                    <Border Padding="8" Margin="0,0,0,6" CornerRadius="3" Background="#F5F5F5">
+                        <StackPanel>
+                            <TextBlock FontSize="12" FontWeight="SemiBold">
+                                <Run Text="2. Préparation CHIFA" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding WorkflowStep2Status}" FontSize="11" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Step 3: Validation -->
+                    <Border Padding="8" Margin="0,0,0,6" CornerRadius="3" Background="#F5F5F5">
+                        <StackPanel>
+                            <TextBlock FontSize="12" FontWeight="SemiBold">
+                                <Run Text="3. Validation" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding WorkflowStep3Status}" FontSize="11" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Step 4: Synchronisation -->
+                    <Border Padding="8" Margin="0,0,0,6" CornerRadius="3" Background="#F5F5F5">
+                        <StackPanel>
+                            <TextBlock FontSize="12" FontWeight="SemiBold">
+                                <Run Text="4. Synchronisation" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding WorkflowStep4Status}" FontSize="11" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Step 5: Action pharmacien -->
+                    <Border Padding="8" Margin="0,0,0,6" CornerRadius="3" Background="#F5F5F5">
+                        <StackPanel>
+                            <TextBlock FontSize="12" FontWeight="SemiBold">
+                                <Run Text="5. Action du pharmacien" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding WorkflowStep5Status}" FontSize="11" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Step 6: Signature CHIFA -->
+                    <Border Padding="8" Margin="0,0,0,6" CornerRadius="3" Background="#F5F5F5">
+                        <StackPanel>
+                            <TextBlock FontSize="12" FontWeight="SemiBold">
+                                <Run Text="6. Signature CHIFA" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding WorkflowStep6Status}" FontSize="11" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Step 7: Clôture bordereau -->
+                    <Border Padding="8" Margin="0,0,0,6" CornerRadius="3" Background="#F5F5F5">
+                        <StackPanel>
+                            <TextBlock FontSize="12" FontWeight="SemiBold">
+                                <Run Text="7. Clôture du bordereau" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding WorkflowStep7Status}" FontSize="11" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Step 8: Transmission CNAS -->
+                    <Border Padding="8" Margin="0,0,0,6" CornerRadius="3" Background="#F5F5F5">
+                        <StackPanel>
+                            <TextBlock FontSize="12" FontWeight="SemiBold">
+                                <Run Text="8. Transmission CNAS" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding WorkflowStep8Status}" FontSize="11" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Right: Details & Required Action -->
+            <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- Tab Headers -->
-                <Border Grid.Row="0" Background="#F5F5F5" Padding="8">
-                    <StackPanel Orientation="Horizontal">
-                    <Button Content="CHIFA Status" Padding="12,6" Margin="0,0,4,0"
-                            BorderThickness="0" Background="Transparent" />
-                    <Button Content="Invoice Preparation" Padding="12,6" Margin="0,0,4,0"
-                            BorderThickness="0" Background="Transparent" />
-                    <Button Content="Bordereau Management" Padding="12,6" Margin="0,0,4,0"
-                            BorderThickness="0" Background="Transparent" />
-                </StackPanel>
+                <!-- Required Action Panel -->
+                <Border Grid.Row="0" Margin="0,0,0,8" Padding="12" CornerRadius="4"
+                        Visibility="{Binding HasRequiredAction, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="BorderBrush" Value="#FF9800" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="Background" Value="#FFF3E0" />
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <TextBlock Text="ACTION REQUISE" FontSize="14" FontWeight="Bold"
+                                   Foreground="#E65100" Margin="0,0,0,8" />
+                        <TextBlock Text="{Binding RequiredActionTitle}" FontSize="16" FontWeight="Bold"
+                                   Foreground="#BF360C" Margin="0,0,0,4" />
+                        <TextBlock Text="{Binding RequiredActionDescription}" TextWrapping="Wrap"
+                                   FontSize="13" Margin="0,0,0,8" />
+                        <TextBlock FontSize="13" Foreground="#1B5E20">
+                            <Run Text="Application: " FontWeight="SemiBold" />
+                            <Run Text="{Binding RequiredActionApplication, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Text="{Binding RequiredActionBmPharmaWaits}" TextWrapping="Wrap"
+                                   FontSize="13" Margin="0,8,0,0" Foreground="#424242" />
+                    </StackPanel>
                 </Border>
 
-                <!-- Content -->
-                <TextBlock Grid.Row="1"
-                           Text="CHIFA Integration Dashboard - Under Construction&#10;&#10;This dashboard will display:&#10;- PostgreSQL connection status&#10;- CHIFA-OFFICINE availability&#10;- Invoice preparation queue&#10;- Bordereau lifecycle tracking&#10;- Signing status (delegated to CHIFA)&#10;- Audit log"
-                           FontSize="14" Foreground="#757575"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                           TextAlignment="Center" />
+                <!-- Detail Info -->
+                <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                        Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="Informations détaillées" FontSize="16" FontWeight="Bold"
+                                   Foreground="#1B5E20" Margin="0,0,0,12" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Mode d'intégration:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding IntegrationMode}"
+                                       FontWeight="Bold" Margin="0,4" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="PostgreSQL:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ConnectionStatus}"
+                                       Margin="0,4" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="CHIFA-OFFICINE:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ChifaStatus}"
+                                       Margin="0,4" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Token PKCS#11:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TokenStatus}"
+                                       Margin="0,4" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Signature:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SigningStatus}"
+                                       Margin="0,4" />
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Factures préparées:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding PreparedInvoiceCount}"
+                                       Margin="0,4" />
+
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Factures synchronisées:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding SynchronizedInvoiceCount}"
+                                       Margin="0,4" />
+
+                            <TextBlock Grid.Row="7" Grid.Column="0" Text="Bordereaux préparés:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding BordereauPreparedCount}"
+                                       Margin="0,4" />
+
+                            <TextBlock Grid.Row="8" Grid.Column="0" Text="Prochain bordereau:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding NextBordereauNumber}"
+                                       Margin="0,4" />
+
+                            <TextBlock Grid.Row="9" Grid.Column="0" Text="Transmission CNAS:"
+                                       Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding CnasTransmissionStatus}"
+                                       Margin="0,4" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Error & Last Operation -->
+                <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                        Padding="12" Margin="0,8,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Dernières opérations" FontSize="14" FontWeight="Bold"
+                                   Foreground="#1B5E20" Margin="0,0,0,8" />
+                        <TextBlock FontSize="12" Foreground="#424242">
+                            <Run Text="Opération: " FontWeight="SemiBold" />
+                            <Run Text="{Binding LastOperation, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock FontSize="12" Foreground="#424242">
+                            <Run Text="Heure: " FontWeight="SemiBold" />
+                            <Run Text="{Binding LastOperationTime, Mode=OneWay}" />
+                        </TextBlock>
+
+                        <TextBlock Text="Erreurs" FontSize="14" FontWeight="Bold"
+                                   Foreground="#F44336" Margin="0,12,0,8"
+                                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <TextBlock Text="{Binding LastError}" TextWrapping="Wrap"
+                                   FontSize="12" Foreground="#D32F2F"
+                                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                        <TextBlock Text="Aucune erreur" FontSize="12" Foreground="#4CAF50"
+                                   Visibility="{Binding HasError, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                    </StackPanel>
+                </Border>
             </Grid>
+        </Grid>
+
+        <!-- Row 3: Status Bar -->
+        <Border Grid.Row="3" Background="#F5F5F5" Padding="8" CornerRadius="3" Margin="0,8,0,0"
+                BorderBrush="#E0E0E0" BorderThickness="1">
+            <DockPanel>
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#757575" />
+                <TextBlock HorizontalAlignment="Right" FontSize="12" Foreground="#757575">
+                    <Run Text="Mode: " />
+                    <Run Text="{Binding IntegrationMode, Mode=OneWay}" FontWeight="Bold" />
+                </TextBlock>
+            </DockPanel>
         </Border>
     </Grid>
 </UserControl>

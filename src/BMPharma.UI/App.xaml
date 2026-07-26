@@ -1,12 +1,14 @@
 ﻿<Application x:Class="BMPharma.UI.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:BMPharma.UI.Converters"
              StartupUri="Views/MainWindow.xaml"
              DispatcherUnhandledException="App_DispatcherUnhandledException">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- MaterialDesign theme will be added here in Phase 2 -->
+                <!-- Converters -->
+                <converters:ConverterResourceDictionary />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

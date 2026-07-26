@@ -8,12 +8,16 @@ using BMPharma.Persistence.SQLite.Contexts;
 using Microsoft.EntityFrameworkCore;
 using BMPharma.CHIFA;
 using BMPharma.Notifications;
+using BMPharma.UI.ViewModels;
+using BMPharma.UI.Views;
 
 namespace BMPharma.UI;
 
 public partial class App : System.Windows.Application
 {
     private IHost? _host;
+
+    public static IServiceProvider? ServiceProvider { get; private set; }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -41,16 +45,24 @@ public partial class App : System.Windows.Application
                 // Notifications (stubs)
                 services.AddNotifications();
 
-                // ViewModels will be registered here
+                // ViewModels
+                services.AddTransient<MainViewModel>();
+                services.AddTransient<ChifaDashboardViewModel>();
             })
             .Build();
 
+        ServiceProvider = _host.Services;
         await _host.StartAsync();
 
         // Initialize database
         using var scope = _host.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BmPharmaDbContext>();
         await dbContext.Database.EnsureCreatedAsync();
+
+        // Create and show main window with DI
+        var mainWindow = new MainWindow();
+        mainWindow.DataContext = _host.Services.GetRequiredService<MainViewModel>();
+        mainWindow.Show();
     }
 
     protected override async void OnExit(ExitEventArgs e)
@@ -66,8 +78,8 @@ public partial class App : System.Windows.Application
     private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         MessageBox.Show(
-            $"An unexpected error occurred:\n\n{e.Exception.Message}",
-            "BM Pharma - Error",
+            $"Une erreur inattendue s'est produite:\n\n{e.Exception.Message}",
+            "BM Pharma - Erreur",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
         e.Handled = true;
