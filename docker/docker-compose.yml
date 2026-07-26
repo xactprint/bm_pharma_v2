@@ -1,0 +1,22 @@
+services:
+  chifa-test-pg:
+    image: postgres:16-alpine
+    container_name: bmpharma-chifa-test-pg
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: CHIFA_OFFICINE
+      POSTGRES_USER: pharm
+      POSTGRES_PASSWORD: pharm
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+      - chifa_test_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pharm -d CHIFA_OFFICINE"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  chifa_test_pgdata:
