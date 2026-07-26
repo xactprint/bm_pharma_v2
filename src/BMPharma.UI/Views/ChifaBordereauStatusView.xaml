@@ -1,44 +1,353 @@
 <UserControl x:Class="BMPharma.UI.Views.ChifaBordereauStatusView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:BMPharma.UI.ViewModels"
+             xmlns:converters="clr-namespace:BMPharma.UI.Converters">
+    <UserControl.Resources>
+        <converters:ConverterResourceDictionary />
+    </UserControl.Resources>
+    <UserControl.DataContext>
+        <vm:ChifaBordereauStatusViewModel />
+    </UserControl.DataContext>
     <Grid Margin="16">
-        <StackPanel>
-            <TextBlock Text="CHIFA Bordereau Status" FontSize="22" FontWeight="Bold"
-                       Foreground="#1B5E20" Margin="0,0,0,16" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
-            <Border BorderBrush="#E0E0E0" BorderThickness="1" Padding="16" CornerRadius="4">
+        <!-- Row 0: Header -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <TextBlock Text="Suivi des bordereaux CHIFA" FontSize="22" FontWeight="Bold"
+                       Foreground="#1B5E20" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Border Padding="8,4" CornerRadius="3" VerticalAlignment="Center">
+                    <Border.Background>
+                        <SolidColorBrush Color="#FFF3E0" />
+                    </Border.Background>
+                    <TextBlock Text="{Binding ModeNotice}" FontSize="12" FontWeight="Bold" Foreground="#FF9800" />
+                </Border>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Row 1: Status Cards -->
+        <UniformGrid Grid.Row="1" Columns="6" Margin="0,0,0,8">
+            <!-- Mode -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="8" Margin="3" CornerRadius="3">
+                <StackPanel>
+                    <TextBlock Text="Mode" FontSize="10" Foreground="#757575" />
+                    <TextBlock Text="{Binding IntegrationMode}" FontSize="13" FontWeight="Bold" />
+                </StackPanel>
+            </Border>
+            <!-- PostgreSQL -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="8" Margin="3" CornerRadius="3">
+                <StackPanel>
+                    <TextBlock Text="PostgreSQL" FontSize="10" Foreground="#757575" />
+                    <TextBlock Text="{Binding ConnectionStatus}" FontSize="13" FontWeight="Bold" />
+                </StackPanel>
+            </Border>
+            <!-- Token -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="8" Margin="3" CornerRadius="3">
+                <StackPanel>
+                    <TextBlock Text="Token" FontSize="10" Foreground="#757575" />
+                    <TextBlock Text="{Binding TokenStatus}" FontSize="13" FontWeight="Bold" />
+                </StackPanel>
+            </Border>
+            <!-- Bordereaux -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="8" Margin="3" CornerRadius="3">
+                <StackPanel>
+                    <TextBlock Text="Bordereaux" FontSize="10" Foreground="#757575" />
+                    <TextBlock FontSize="13" FontWeight="Bold">
+                        <Run Text="{Binding Bordereaux.Count, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <!-- Factures -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="8" Margin="3" CornerRadius="3">
+                <StackPanel>
+                    <TextBlock Text="Factures" FontSize="10" Foreground="#757575" />
+                    <TextBlock Text="{Binding SelectedBordereau.InvoiceCount, Mode=OneWay, FallbackValue=0}" FontSize="13" FontWeight="Bold" />
+                </StackPanel>
+            </Border>
+            <!-- Alertes -->
+            <Border BorderBrush="#C8E6C9" BorderThickness="1" Padding="8" Margin="3" CornerRadius="3">
+                <StackPanel>
+                    <TextBlock Text="Alertes" FontSize="10" Foreground="#757575" />
+                    <TextBlock Text="{Binding AlertsCount}" FontSize="13" FontWeight="Bold" Foreground="#F44336" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- Row 2: Main Content -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Bordereau List -->
+            <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                    Padding="12" Margin="0,0,8,0">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Next Bordereau Number:"
-                               VerticalAlignment="Center" Margin="0,8" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="(Not connected)"
-                               FontSize="14" Margin="0,8" />
+                    <!-- Bordereau List Header -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                        <TextBlock DockPanel.Dock="Left" Text="Liste des bordereaux" FontSize="16" FontWeight="Bold"
+                                   Foreground="#1B5E20" VerticalAlignment="Center" />
+                        <Button DockPanel.Dock="Right" Content="Rafraîchir" Command="{Binding RefreshBordereauxCommand}"
+                                Padding="8,4" HorizontalAlignment="Right" />
+                    </DockPanel>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Current Mode:"
-                               VerticalAlignment="Center" Margin="0,8" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="ReadOnly"
-                               FontSize="14" Foreground="#FF9800" Margin="0,8" />
-
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Signing:"
-                               VerticalAlignment="Center" Margin="0,8" />
-                    <TextBlock Grid.Row="2" Grid.Column="1"
-                               Text="Delegated to CHIFA-OFFICINE (PKCS#11 token required)"
-                               FontSize="14" Foreground="#F44336" Margin="0,8" />
+                    <!-- Bordereau List -->
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Bordereaux}" AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True"
+                              GridLinesVisibility="Horizontal" BorderBrush="#E0E0E0" BorderThickness="1"
+                              HeadersVisibility="Column" SelectionMode="Single"
+                              SelectedItem="{Binding SelectedBordereau}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="N° Bordereau" Binding="{Binding NumBord}" Width="120" />
+                            <DataGridTextColumn Header="État" Binding="{Binding State}" Width="140" />
+                            <DataGridTextColumn Header="Factures" Binding="{Binding InvoiceCount}" Width="70" />
+                            <DataGridTextColumn Header="Montant" Binding="{Binding TotalAmount, StringFormat=N2}" Width="100" />
+                            <DataGridTemplateColumn Header="Action requise" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Oui" />
+                                                    <Setter Property="Foreground" Value="#F44336" />
+                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RequiresAction}" Value="False">
+                                                            <Setter Property="Text" Value="Non" />
+                                                            <Setter Property="Foreground" Value="#4CAF50" />
+                                                            <Setter Property="FontWeight" Value="Normal" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </Grid>
             </Border>
 
-            <TextBlock Text="Note: Bordereau signing is performed exclusively through CHIFA-OFFICINE using the pharmacist's professional token."
-                       FontSize="12" Foreground="#757575" Margin="0,16,0,0"
-                       TextWrapping="Wrap" />
-        </StackPanel>
+            <!-- Right: Detail Panel -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Detail Header -->
+                <TextBlock Grid.Row="0" Text="Détails du bordereau" FontSize="16" FontWeight="Bold"
+                           Foreground="#1B5E20" Margin="0,0,0,8" />
+
+                <!-- Detail Content -->
+                <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                        Padding="12">
+                    <StackPanel>
+                        <!-- State Grid -->
+                        <TextBlock Text="État du workflow" FontSize="14" FontWeight="Bold"
+                                   Foreground="#1B5E20" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="N° Bordereau:" Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding NumBord}" FontWeight="Bold" Margin="0,4" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="État:" Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentState}" FontWeight="Bold" Margin="0,4" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Mode:" Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding IntegrationMode}" Margin="0,4" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Simulation:" Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,4">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Oui" />
+                                        <Setter Property="Foreground" Value="#FF9800" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSimulationMode}" Value="False">
+                                                <Setter Property="Text" Value="Non" />
+                                                <Setter Property="Foreground" Value="#4CAF50" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+
+                        <Separator Margin="0,4,0,12" />
+
+                        <!-- Invoice Summary -->
+                        <TextBlock Text="Résumé des factures" FontSize="14" FontWeight="Bold"
+                                   Foreground="#1B5E20" Margin="0,0,0,8" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Total factures:" Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding InvoiceCount}" FontWeight="Bold" Margin="0,4" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Signées:" Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SignedInvoiceCount}" FontWeight="Bold" Foreground="#4CAF50" Margin="0,4" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Non signées:" Foreground="#757575" Margin="0,4" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding UnsignedInvoiceCount}" FontWeight="Bold" Foreground="#F44336" Margin="0,4" />
+                        </Grid>
+
+                        <Separator Margin="0,4,0,12" />
+
+                        <!-- Amounts -->
+                        <TextBlock Text="Montants" FontSize="14" FontWeight="Bold"
+                                   Foreground="#1B5E20" Margin="0,0,0,8" />
+                        <Border Background="#F5F5F5" Padding="8" CornerRadius="3">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Total bordereau: " VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding TotalAmount, StringFormat=N2}" FontWeight="Bold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Validation Errors -->
+                <Border Grid.Row="2" Margin="0,8,0,0" Padding="12" CornerRadius="4"
+                        BorderBrush="#F44336" BorderThickness="1" Background="#FFEBEE"
+                        Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock Text="Erreurs de validation" FontSize="14" FontWeight="Bold"
+                                   Foreground="#D32F2F" Margin="0,0,0,8" />
+                        <ItemsControl ItemsSource="{Binding ValidationErrors}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" Padding="8" Margin="0,0,0,4" CornerRadius="3"
+                                            BorderBrush="#FFCDD2" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock FontSize="11" FontWeight="Bold" Foreground="#D32F2F">
+                                                <Run Text="{Binding Code, Mode=OneWay}" />
+                                                <Run Text=" — " />
+                                                <Run Text="{Binding Field, Mode=OneWay}" />
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="12" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Row 3: Action Bar -->
+        <Border Grid.Row="3" Background="#F5F5F5" Padding="8" CornerRadius="3" Margin="0,8,0,0"
+                BorderBrush="#E0E0E0" BorderThickness="1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Valider" Command="{Binding ValidateBordereauCommand}" Padding="16,8"
+                        Margin="0,0,8,0" FontWeight="Bold" Background="#4CAF50" Foreground="White"
+                        IsEnabled="{Binding RequiresAction}" />
+                <Button Content="Signer" Command="{Binding SignBordereauCommand}" Padding="16,8"
+                        Margin="0,0,8,0" FontWeight="Bold" Background="#1B5E20" Foreground="White"
+                        IsEnabled="{Binding RequiresAction}" />
+                <Button Content="Clôturer" Command="{Binding CloseBordereauCommand}" Padding="16,8"
+                        Margin="0,0,8,0" FontWeight="Bold" Background="#FF9800" Foreground="White"
+                        IsEnabled="{Binding RequiresAction}" />
+                <Button Content="Transmettre" Command="{Binding TransmitBordereauCommand}" Padding="16,8"
+                        FontWeight="Bold" Background="#0D47A1" Foreground="White"
+                        IsEnabled="{Binding RequiresAction}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Row 4: Action Required Panel -->
+        <Border Grid.Row="4" Margin="0,8,0,0" Padding="12" CornerRadius="4"
+                BorderBrush="#FF9800" BorderThickness="1" Background="#FFF3E0"
+                Visibility="{Binding RequiresAction, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel>
+                <TextBlock Text="ACTION REQUISE" FontSize="14" FontWeight="Bold"
+                           Foreground="#E65100" Margin="0,0,0,4" />
+                <TextBlock Text="{Binding ActionDescription}" TextWrapping="Wrap"
+                           FontSize="13" Margin="0,0,0,4" />
+                <TextBlock FontSize="12" Foreground="#1B5E20">
+                    <Run Text="Application: " FontWeight="SemiBold" />
+                    <Run Text="{Binding ActionApplication, Mode=OneWay}" />
+                </TextBlock>
+                <TextBlock Text="{Binding ActionBmPharmaWaits}" TextWrapping="Wrap"
+                           FontSize="12" Margin="0,4,0,0" Foreground="#424242" />
+            </StackPanel>
+        </Border>
+
+        <!-- Row 5: Audit Log + Status Bar -->
+        <Grid Grid.Row="5" Margin="0,8,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Audit Log -->
+            <Border Grid.Row="0" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                    Padding="12" Margin="0,0,0,4">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <TextBlock DockPanel.Dock="Left" Text="Journal d'audit" FontSize="14" FontWeight="Bold"
+                                   Foreground="#1B5E20" VerticalAlignment="Center" />
+                        <Button DockPanel.Dock="Right" Content="Charger" Command="{Binding LoadAuditLogCommand}"
+                                Padding="8,4" HorizontalAlignment="Right" />
+                    </DockPanel>
+                    <DataGrid ItemsSource="{Binding AuditLog}" AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True"
+                              GridLinesVisibility="Horizontal" BorderThickness="0"
+                              HeadersVisibility="Column" MaxHeight="200" VerticalScrollBarVisibility="Auto">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Horodatage" Binding="{Binding Timestamp, StringFormat=yyyy-MM-dd HH:mm:ss}" Width="140" />
+                            <DataGridTextColumn Header="Opération" Binding="{Binding Operation}" Width="120" />
+                            <DataGridTextColumn Header="Résultat" Binding="{Binding Result}" Width="80" />
+                            <DataGridTextColumn Header="Détails" Binding="{Binding Details}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Status Bar -->
+            <Border Grid.Row="1" Background="#F5F5F5" Padding="8" CornerRadius="3"
+                    BorderBrush="#E0E0E0" BorderThickness="1">
+                <DockPanel>
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#757575" />
+                    <TextBlock HorizontalAlignment="Right" FontSize="12" Foreground="#757575">
+                        <Run Text="Mode: " />
+                        <Run Text="{Binding IntegrationMode, Mode=OneWay}" FontWeight="Bold" />
+                    </TextBlock>
+                </DockPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

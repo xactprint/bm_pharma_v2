@@ -49,6 +49,7 @@ public partial class App : System.Windows.Application
                 services.AddTransient<MainViewModel>();
                 services.AddTransient<ChifaDashboardViewModel>();
                 services.AddTransient<ChifaInvoicePreparationViewModel>();
+                services.AddTransient<ChifaBordereauStatusViewModel>();
             })
             .Build();
 

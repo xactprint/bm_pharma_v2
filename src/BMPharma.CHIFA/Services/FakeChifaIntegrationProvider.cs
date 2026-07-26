@@ -39,6 +39,9 @@ public class FakeChifaIntegrationProvider : IChifaIntegrationService, IChifaInvo
         _tokenPresent = false;
         _simulateSigningRequired = false;
         _simulateCloseFails = false;
+        _simulateTransmissionFails = false;
+        _simulatePartialSigning = false;
+        _simulatedTimeoutMs = 0;
     }
 
     public void SimulateOffline() => _isOnline = false;
@@ -62,8 +65,26 @@ public class FakeChifaIntegrationProvider : IChifaIntegrationService, IChifaInvo
     public void SimulateCloseFails() => _simulateCloseFails = true;
     public void SimulateCloseOk() => _simulateCloseFails = false;
 
+    private bool _simulateTransmissionFails = false;
+    public void SimulateTransmissionFails() => _simulateTransmissionFails = true;
+    public void SimulateTransmissionOk() => _simulateTransmissionFails = false;
+
+    private bool _simulatePartialSigning = false;
+    public void SimulatePartialSigning() => _simulatePartialSigning = true;
+    public void SimulateFullSigning() => _simulatePartialSigning = false;
+
+    private int _simulatedTimeoutMs = 0;
+    public void SimulateTimeout(int ms = 5000) => _simulatedTimeoutMs = ms;
+
+    private readonly ConcurrentDictionary<string, decimal> _bordereauAmounts = new();
+    public decimal GetBordereauAmount(string numBord) => _bordereauAmounts.TryGetValue(numBord, out var amt) ? amt : 0;
+    public void SetBordereauAmount(string numBord, decimal amount) => _bordereauAmounts[numBord] = amount;
+
     public Task<bool> IsChifaAvailableAsync(CancellationToken cancellationToken = default)
     {
+        if (_simulatedTimeoutMs > 0)
+            Thread.Sleep(Math.Min(_simulatedTimeoutMs, 50));
+
         return Task.FromResult(_isOnline);
     }
 
@@ -320,6 +341,15 @@ public class FakeChifaIntegrationProvider : IChifaIntegrationService, IChifaInvo
 
         _logger.LogWarning("[SIM] CHIFA bordereau {NumBord} closed (SIMULATED)", numBord);
 
+        if (_simulateTransmissionFails)
+        {
+            return Task.FromResult(new ChifaBordereauResult
+            {
+                Success = false,
+                ErrorMessage = "Simulated: Transmission failed"
+            });
+        }
+
         return Task.FromResult(new ChifaBordereauResult
         {
             Success = true,
@@ -368,7 +398,9 @@ public class FakeChifaIntegrationProvider : IChifaIntegrationService, IChifaInvo
     {
         if (_bordereaux.ContainsKey(numBord))
         {
-            _signingStatuses[numBord] = ChifaSigningStatus.Signed;
+        _signingStatuses[numBord] = _simulatePartialSigning
+            ? ChifaSigningStatus.SigningInProgress
+            : ChifaSigningStatus.Signed;
             _auditLog.Add(new ChifaAuditEntry
             {
                 Timestamp = DateTime.UtcNow,

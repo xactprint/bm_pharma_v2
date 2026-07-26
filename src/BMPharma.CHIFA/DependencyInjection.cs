@@ -28,8 +28,10 @@ public static class DependencyInjection
         services.AddScoped<ChifaInvoiceMapper>();
         services.AddScoped<ChifaBordereauMapper>();
         services.AddScoped<ChifaWorkflowStateMachine>();
+        services.AddScoped<BordereauWorkflowStateMachine>();
         services.AddSingleton<FakeChifaIntegrationProvider>();
         services.AddScoped<IChifaInvoiceWorkflowService, ChifaInvoiceWorkflowService>();
+        services.AddScoped<IBordereauStatusService, BordereauStatusService>();
 
         var usePostgres = !modeProvider.IsReadOnly;
 
@@ -83,8 +85,10 @@ public static class DependencyInjection
         services.AddScoped<ChifaInvoiceMapper>();
         services.AddScoped<ChifaBordereauMapper>();
         services.AddScoped<ChifaWorkflowStateMachine>();
+        services.AddScoped<BordereauWorkflowStateMachine>();
         services.AddSingleton<FakeChifaIntegrationProvider>();
         services.AddScoped<IChifaInvoiceWorkflowService, ChifaInvoiceWorkflowService>();
+        services.AddScoped<IBordereauStatusService, BordereauStatusService>();
         services.AddScoped<IChifaAuditService, ChifaAuditService>();
 
         if (modeProvider.IsReadOnly)

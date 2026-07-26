@@ -48,6 +48,11 @@ public partial class MainWindow : Window
             var vm = App.ServiceProvider?.GetService(typeof(ChifaInvoicePreparationViewModel));
             if (vm != null) view.DataContext = vm;
         }
+        else if (view is ChifaBordereauStatusView)
+        {
+            var vm = App.ServiceProvider?.GetService(typeof(ChifaBordereauStatusViewModel));
+            if (vm != null) view.DataContext = vm;
+        }
         else
         {
             var vm = App.ServiceProvider?.GetService(typeof(ChifaDashboardViewModel));
