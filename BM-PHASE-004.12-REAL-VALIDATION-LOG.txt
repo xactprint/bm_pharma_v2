@@ -1,0 +1,679 @@
+
+=== PRE-CAPTURE: Baseline Counters (READ-ONLY) ===
+Connected: 9.3.4 | pharm@CHIFA_OFFICINE
+  facture      = 0
+  detail_fact  = 0
+  bordereau    = 0
+  parametre    = 1
+  medicament   = 7596
+  signature    = 0
+  ln           = 7412276
+  next_num_fact = 1
+  next_num_bord = 215
+  code_centre  = 11600
+  code_ps      = 1234567890
+
+=== PHASE 1 — VALIDATION DE LA CONNEXION RÉELLE ===
+    Time: 0ms | State: Open
+PASS  PH1.01 TCP Connection
+    current_user: pharm
+PASS  PH1.02 Authentication (pharm)
+    current_database: CHIFA_OFFICINE
+PASS  PH1.03 Database (CHIFA_OFFICINE)
+    current_schema: public
+PASS  PH1.04 Schema (public)
+    PostgreSQL 9.3.4, compiled by Visual C++ build 1600, 32-bit
+PASS  PH1.05 PostgreSQL version
+    SELECT 42 => 42
+PASS  PH1.06 Simple SELECT
+    First: 1, Second: 2
+PASS  PH1.07 Close/reopen cycle
+    server_time: 2026-07-27 20:42:51.318+02
+PASS  PH1.08 Server timestamp
+    backend_pid: 17132
+    usename: pharm
+PASS  PH1.09 Connection details
+
+=== PHASE 2 — SCHEMA DISCOVERY (Real CHIFA) ===
+    Total tables: 48
+      attestation_mc
+      beneficiaire
+      bordereau
+      carte_chifa
+      centre
+      certificat_token
+      cm
+      cm_audit
+      condition
+      conditionnement
+      detail_fact
+      detail_fact2
+      detail_fact_cm
+      detail_fact_cm2
+      droit_acces
+      facture
+      facture2
+      facture_cm
+      facture_cm2
+      file
+      forme
+      liste_noire
+      liste_noire2
+      liste_noire_light
+      ln
+      logiciel
+      medic_demuni
+      medic_ppa
+      medic_sp
+      medicament
+      medicament2
+      morfine
+      mutualiste_radie
+      parametre
+      parametre_code_barre
+      rupture_stock
+      signature
+      specialite
+      tarif
+      temp
+      temp00
+      temp01
+      temp02
+      temp03
+      temp04
+      token
+      type_posologie
+      utilisateur
+PASS  PH2.01 Table list
+    facture: 53 columns
+    detail_fact: 20 columns
+    bordereau: 11 columns
+    parametre: 58 columns
+    medicament: 29 columns
+    signature: 2 columns
+    ln: 1 columns
+PASS  PH2.02 Column inventory (critical tables)
+    Primary keys: 47
+    attestation_mc:
+      num_assure
+      rang_ad
+      code_centre
+    beneficiaire:
+      num_assure
+      rang_ad
+    bordereau:
+      num_bord
+    carte_chifa:
+      num_serie
+    centre:
+      code_centre
+    certificat_token:
+      num_serie
+    cm:
+      ref_cm
+      num_fact
+      num_assure
+    cm_audit:
+      num_fact
+    condition:
+      code
+      nature
+    conditionnement:
+      condit
+      nombre
+    detail_fact:
+      num_fact
+      num_enr
+      ppa
+    detail_fact_cm:
+      num_fact
+      num_enr
+      ppa
+    droit_acces:
+      id_user
+      composant
+    facture:
+      num_fact
+    facture_cm:
+      num_fact
+    file:
+      file_name
+    forme:
+      code_forme
+    logiciel:
+      version
+    medic_demuni:
+      code
+    medic_sp:
+      num_enr
+      code_sp
+    medicament:
+      num_enr
+    medicament2:
+      code
+    mutualiste_radie:
+      num_assure
+      code_mut
+    parametre:
+      code_ps
+    rupture_stock:
+      code_medic
+      date_insert
+    signature:
+      num_fact
+    specialite:
+      code_sp
+    tarif:
+      num_enr
+      d_debut
+    token:
+      code_affect
+    type_posologie:
+      code
+    utilisateur:
+      id_user
+PASS  PH2.03 Primary keys
+    Foreign keys: 5
+      detail_fact.num_fact -> facture.num_fact
+      droit_acces.id_user -> utilisateur.id_user
+      facture.num_bord -> bordereau.num_bord
+      facture_cm.num_bord -> bordereau.num_bord
+      facture_cm.code_centre -> centre.code_centre
+PASS  PH2.04 Foreign keys
+    Indexes: 34
+      attestation_mc.PK_ATTESTATION_MC
+      beneficiaire.PK_BENEFICIAIRE
+      bordereau.PK_BORDEREAU
+      bordereau.UN_BORDEREAU
+      carte_chifa.CARTE_CHIFA_PK
+      centre.PK_CENTRE
+      certificat_token.PK_CERTIFICAT_TOKEN
+      cm.PK_CM
+      cm_audit.PK_CM_AUDIT
+      condition.PK_CONDITION
+      conditionnement.PK_CONDITIONNEMENT
+      detail_fact.PK_DETAIL_FACT
+      detail_fact_cm.PK_DETAIL_FACT_CM
+      droit_acces.PK_DROIT_ACCES
+      facture.PK_FACTURE
+      facture_cm.PK_FACTURE_CM
+      file.PK_FILE
+      forme.PK_FORME
+      logiciel.LOGICIEL_PK
+      medic_demuni.PK_MEDIC_DEMUNI
+      medic_sp.PK_MEDIC_SP
+      medicament.PK_MEDICAMENT
+      medicament2.PK_MEDICAMENT2
+      mutualiste_radie.MUTUALISTE_RADIE_PK
+      parametre.PK_PARAMETRE
+      rupture_stock.PK_RUPTURE_STOCK
+      signature.pk_signature
+      specialite.PK_SPECIALITE
+      tarif.PK_TARIF
+      token.TOKEN_PK
+      token.TOKEN_UN
+      type_posologie.PK_TYPE_POSOLOGIE
+      utilisateur.PK_UTILISATEUR
+      utilisateur.UN_UTILISATEUR
+PASS  PH2.05 Indexes
+    Sequences: 2
+      bordereau_id_bord_seq (bigint) start=1
+      utilisateur_id_user_seq (bigint) start=1
+PASS  PH2.06 Sequences
+    Constraints: 107
+      attestation_mc.2200_16397_2_not_null (CHECK)
+      attestation_mc.2200_16397_1_not_null (CHECK)
+      attestation_mc.2200_16397_7_not_null (CHECK)
+      attestation_mc.PK_ATTESTATION_MC (PRIMARY KEY)
+      beneficiaire.2200_16400_2_not_null (CHECK)
+      beneficiaire.2200_16400_1_not_null (CHECK)
+      beneficiaire.PK_BENEFICIAIRE (PRIMARY KEY)
+      bordereau.2200_16403_2_not_null (CHECK)
+      bordereau.2200_16403_3_not_null (CHECK)
+      bordereau.2200_16403_1_not_null (CHECK)
+      bordereau.PK_BORDEREAU (PRIMARY KEY)
+      bordereau.UN_BORDEREAU (UNIQUE)
+      carte_chifa.2200_17863_3_not_null (CHECK)
+      carte_chifa.CARTE_CHIFA_PK (PRIMARY KEY)
+      centre.2200_16408_1_not_null (CHECK)
+      centre.PK_CENTRE (PRIMARY KEY)
+      certificat_token.2200_8712941_1_not_null (CHECK)
+      certificat_token.PK_CERTIFICAT_TOKEN (PRIMARY KEY)
+      cm.2200_16411_2_not_null (CHECK)
+      cm.2200_16411_3_not_null (CHECK)
+      cm.2200_16411_1_not_null (CHECK)
+      cm.PK_CM (PRIMARY KEY)
+      cm_audit.2200_8712936_2_not_null (CHECK)
+      cm_audit.2200_8712936_1_not_null (CHECK)
+      cm_audit.PK_CM_AUDIT (PRIMARY KEY)
+      condition.2200_232862_1_not_null (CHECK)
+      condition.2200_232862_2_not_null (CHECK)
+      condition.2200_232862_3_not_null (CHECK)
+      condition.2200_232862_5_not_null (CHECK)
+      condition.PK_CONDITION (PRIMARY KEY)
+      conditionnement.2200_241059_1_not_null (CHECK)
+      conditionnement.2200_241059_2_not_null (CHECK)
+      conditionnement.PK_CONDITIONNEMENT (PRIMARY KEY)
+      detail_fact.2200_16414_10_not_null (CHECK)
+      detail_fact.2200_16414_6_not_null (CHECK)
+      detail_fact.2200_16414_1_not_null (CHECK)
+      detail_fact.2200_16414_4_not_null (CHECK)
+      detail_fact.2200_16414_3_not_null (CHECK)
+      detail_fact.2200_16414_5_not_null (CHECK)
+      detail_fact.FK1_DETAIL_FACT (FOREIGN KEY)
+      detail_fact.PK_DETAIL_FACT (PRIMARY KEY)
+      detail_fact_cm.2200_16417_1_not_null (CHECK)
+      detail_fact_cm.2200_16417_4_not_null (CHECK)
+      detail_fact_cm.2200_16417_5_not_null (CHECK)
+      detail_fact_cm.2200_16417_3_not_null (CHECK)
+      detail_fact_cm.2200_16417_10_not_null (CHECK)
+      detail_fact_cm.2200_16417_6_not_null (CHECK)
+      detail_fact_cm.PK_DETAIL_FACT_CM (PRIMARY KEY)
+      droit_acces.2200_16426_2_not_null (CHECK)
+      droit_acces.2200_16426_1_not_null (CHECK)
+      droit_acces.FK_UTILISATEUR (FOREIGN KEY)
+      droit_acces.PK_DROIT_ACCES (PRIMARY KEY)
+      facture.2200_16429_25_not_null (CHECK)
+      facture.2200_16429_1_not_null (CHECK)
+      facture.FK1_FACTURE (FOREIGN KEY)
+      facture.PK_FACTURE (PRIMARY KEY)
+      facture_cm.2200_16435_1_not_null (CHECK)
+      facture_cm.2200_16435_25_not_null (CHECK)
+      facture_cm.FK1_FACTURE_CM (FOREIGN KEY)
+      facture_cm.FK2_FACTURE_CM (FOREIGN KEY)
+      facture_cm.PK_FACTURE_CM (PRIMARY KEY)
+      file.2200_2429722_1_not_null (CHECK)
+      file.PK_FILE (PRIMARY KEY)
+      forme.2200_16438_1_not_null (CHECK)
+      forme.PK_FORME (PRIMARY KEY)
+      logiciel.2200_59306_1_not_null (CHECK)
+      logiciel.LOGICIEL_PK (PRIMARY KEY)
+      medic_demuni.2200_7620756_1_not_null (CHECK)
+      medic_demuni.PK_MEDIC_DEMUNI (PRIMARY KEY)
+      medic_ppa.2200_232867_1_not_null (CHECK)
+      medic_ppa.2200_232867_4_not_null (CHECK)
+      medic_sp.2200_16447_2_not_null (CHECK)
+      medic_sp.2200_16447_1_not_null (CHECK)
+      medic_sp.PK_MEDIC_SP (PRIMARY KEY)
+      medicament.2200_16450_1_not_null (CHECK)
+      medicament.PK_MEDICAMENT (PRIMARY KEY)
+      medicament2.2200_2380594_1_not_null (CHECK)
+      medicament2.PK_MEDICAMENT2 (PRIMARY KEY)
+      morfine.2200_16456_1_not_null (CHECK)
+      mutualiste_radie.2200_182332_1_not_null (CHECK)
+      mutualiste_radie.2200_182332_2_not_null (CHECK)
+      mutualiste_radie.MUTUALISTE_RADIE_PK (PRIMARY KEY)
+      parametre.2200_16459_1_not_null (CHECK)
+      parametre.PK_PARAMETRE (PRIMARY KEY)
+      rupture_stock.2200_4559670_3_not_null (CHECK)
+      rupture_stock.2200_4559670_2_not_null (CHECK)
+      rupture_stock.2200_4559670_1_not_null (CHECK)
+      rupture_stock.PK_RUPTURE_STOCK (PRIMARY KEY)
+      signature.2200_258885_1_not_null (CHECK)
+      signature.pk_signature (PRIMARY KEY)
+      specialite.2200_16494_2_not_null (CHECK)
+      specialite.2200_16494_1_not_null (CHECK)
+      specialite.PK_SPECIALITE (PRIMARY KEY)
+      tarif.2200_16497_2_not_null (CHECK)
+      tarif.2200_16497_1_not_null (CHECK)
+      tarif.PK_TARIF (PRIMARY KEY)
+      token.2200_17871_3_not_null (CHECK)
+      token.2200_17871_2_not_null (CHECK)
+      token.TOKEN_PK (PRIMARY KEY)
+      token.TOKEN_UN (UNIQUE)
+      type_posologie.2200_2962158_2_not_null (CHECK)
+      type_posologie.2200_2962158_1_not_null (CHECK)
+      type_posologie.PK_TYPE_POSOLOGIE (PRIMARY KEY)
+      utilisateur.2200_16500_4_not_null (CHECK)
+      utilisateur.2200_16500_1_not_null (CHECK)
+      utilisateur.PK_UTILISATEUR (PRIMARY KEY)
+      utilisateur.UN_UTILISATEUR (UNIQUE)
+PASS  PH2.07 Constraints (UNIQUE, CHECK)
+    Functions: 51
+      add (FUNCTION) → integer
+      cloturerbord (FUNCTION) → integer
+      cloturerbord (FUNCTION) → integer
+      dblink (FUNCTION) → record
+      dblink (FUNCTION) → record
+      dblink (FUNCTION) → record
+      dblink (FUNCTION) → record
+      dblink_build_sql_delete (FUNCTION) → text
+      dblink_build_sql_insert (FUNCTION) → text
+      dblink_build_sql_update (FUNCTION) → text
+      dblink_cancel_query (FUNCTION) → text
+      dblink_close (FUNCTION) → text
+      dblink_close (FUNCTION) → text
+      dblink_close (FUNCTION) → text
+      dblink_close (FUNCTION) → text
+      dblink_connect (FUNCTION) → text
+      dblink_connect (FUNCTION) → text
+      dblink_connect_u (FUNCTION) → text
+      dblink_connect_u (FUNCTION) → text
+      dblink_current_query (FUNCTION) → text
+      dblink_disconnect (FUNCTION) → text
+      dblink_disconnect (FUNCTION) → text
+      dblink_error_message (FUNCTION) → text
+      dblink_exec (FUNCTION) → text
+      dblink_exec (FUNCTION) → text
+      dblink_exec (FUNCTION) → text
+      dblink_exec (FUNCTION) → text
+      dblink_fdw_validator (FUNCTION) → void
+      dblink_fetch (FUNCTION) → record
+      dblink_fetch (FUNCTION) → record
+      dblink_fetch (FUNCTION) → record
+      dblink_fetch (FUNCTION) → record
+      dblink_get_connections (FUNCTION) → ARRAY
+      dblink_get_notify (FUNCTION) → record
+      dblink_get_notify (FUNCTION) → record
+      dblink_get_pkey (FUNCTION) → USER-DEFINED
+      dblink_get_result (FUNCTION) → record
+      dblink_get_result (FUNCTION) → record
+      dblink_is_busy (FUNCTION) → integer
+      dblink_open (FUNCTION) → text
+      dblink_open (FUNCTION) → text
+      dblink_open (FUNCTION) → text
+      dblink_open (FUNCTION) → text
+      dblink_send_query (FUNCTION) → integer
+      describe_table (FUNCTION) → text
+      importdata (FUNCTION) → integer
+      importtable (FUNCTION) → integer
+      increment (FUNCTION) → integer
+      pg_stat_statements (FUNCTION) → record
+      pg_stat_statements_reset (FUNCTION) → void
+      readfile (FUNCTION) → bytea
+PASS  PH2.08 Functions
+
+=== PHASE 3 — VALIDATION DES TABLES CRITIQUES ===
+    facture rows: 0
+    facture columns: 53
+PASS  PH3.01 facture — exists
+    Physical columns: 53
+PASS  PH3.02 facture — 53 physical columns
+    PK: num_fact
+PASS  PH3.03 facture — PK num_fact
+    FKs on facture: 1
+      → bordereau.num_bord
+PASS  PH3.04 facture — FK to bordereau
+    detail_fact rows=0 cols=20 PK=(num_fact, num_enr, ppa)
+PASS  PH3.05 detail_fact — 20 columns, PK(num_fact,num_enr,ppa)
+    bordereau rows=0 cols=11 PK=num_bord
+PASS  PH3.06 bordereau — 11 columns, PK num_bord
+    parametre rows=1 cols=58 PK=code_ps
+PASS  PH3.07 parametre — 1 row, PK code_ps
+    medicament rows=7596 cols=29 PK=num_enr
+PASS  PH3.08 medicament — 29 columns, PK num_enr
+    signature rows=0 cols=2 PK=num_fact
+PASS  PH3.09 signature — 2 columns, PK num_fact
+    ln rows=7412276 cols=1 col=num_serie(character varying(16))
+PASS  PH3.10 ln — 1 column (num_serie)
+
+=== PHASE 4 — VALIDATION DE parametre ===
+    parametre: 58 columns
+      code_ps                        character varying              NOT NULL 
+      nom_pharmacie                  character varying              NULL 
+      nom                            character varying              NULL 
+      prenom                         character varying              NULL 
+      adresse                        character varying              NULL 
+      num_tel                        character varying              NULL 
+      num_fax                        character varying              NULL 
+      email                          character varying              NULL 
+      code_sp                        character varying              NULL 
+      nis                            character varying              NULL 
+      nico                           character varying              NULL 
+      ndps                           character varying              NULL 
+      code_centre                    character varying              NULL 
+      convention                     character                      NULL 
+      ref_convention                 character varying              NULL 
+      ref_bancaire                   character varying              NULL 
+      mode_reglement                 character                      NULL 
+      mont_max                       numeric                        NULL DEFAULT=3000
+      contact                        character                      NULL 
+      mont_maj_fae                   numeric                        NULL DEFAULT=5
+      mont_maj_sub                   numeric                        NULL DEFAULT=15
+      taux_maj_local                 numeric                        NULL DEFAULT=20
+      taux_maj_inf_tr                numeric                        NULL DEFAULT=10
+      version                        character varying              NULL DEFAULT='1.0.0.0'::character varying
+      date_medicament                timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_liste_noire               timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_liste_mc                  timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_version                   timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_specialite                timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_tarif                     timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_note                      timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_convention                character varying              NULL 
+      nb_ord_max                     integer                        NULL DEFAULT=2
+      officine_dgsn                  boolean                        NULL DEFAULT=false
+      chemin_backup                  character varying              NULL 
+      heure_backup                   character varying              NULL 
+      nb_backup                      integer                        NULL 
+      next_num_fact                  integer                        NULL 
+      next_num_bord                  smallint                       NULL 
+      poste_serveur_chifa            boolean                        NULL 
+      poste_telech                   character varying              NULL 
+      date_api_chifa                 timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_verif_maj                 timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_verif_cm                  timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      date_mut_radie                 timestamp without time zone    NULL DEFAULT='1962-07-05 00:00:00'::timestamp without time zone
+      params                         character varying              NULL 
+      version_db                     integer                        NULL 
+      version_ftp                    integer                        NULL 
+      date_version_ftp               date                           NULL 
+      annee                          integer                        NULL 
+      date_ln_complete               date                           NULL 
+      backup_start                   boolean                        NULL 
+      backup_exit                    boolean                        NULL 
+      date_medicament2               timestamp without time zone    NULL DEFAULT='2024-02-08 00:00:00'::timestamp without time zone
+      date_medic_ppa                 date                           NULL DEFAULT='2023-01-31'::date
+      access_token                   character varying              NULL 
+      refresh_token                  character varying              NULL 
+      date_medic_demuni              timestamp without time zone    NULL DEFAULT='2025-01-01 00:00:00'::timestamp without time zone
+PASS  PH4.01 parametre — full structure (58 columns)
+    code_ps = 1234567890
+PASS  PH4.02 parametre — code_ps (code pharmacie)
+    nom = PHARMACIE
+PASS  PH4.03 parametre — nom (nom pharmacie)
+    prenom = EXEMPLE
+PASS  PH4.04 parametre — prenom
+    code_centre = 11600
+PASS  PH4.05 parametre — code_centre
+    next_num_fact = 1 (OBSERVED — NOT MODIFIED)
+PASS  PH4.06 parametre — next_num_fact (counter)
+    next_num_bord = 215 (OBSERVED — NOT MODIFIED)
+PASS  PH4.07 parametre — next_num_bord (counter)
+    version = 3.0.4.3
+PASS  PH4.08 parametre — version
+    annee = 2024
+PASS  PH4.09 parametre — annee
+    mont_maj_fae = 5
+    mont_maj_sub = 15
+    taux_maj_local = 20
+PASS  PH4.10 parametre — mont_maj_fae, mont_maj_sub, taux_maj_local
+    access_token = NULL
+PASS  PH4.11 parametre — access_token present
+    refresh_token = NULL
+PASS  PH4.12 parametre — refresh_token present
+
+=== PHASE 5 — VALIDATION DES FACTURES ===
+    Total factures: 0
+PASS  PH5.01 facture — total count
+    facture structure (53 columns):
+      num_fact                       character varying              NOT NULL
+      date_fact                      timestamp without time zone    NULL
+      etat                           character                      NULL
+      num_bord                       character varying              NULL
+      mont_off                       numeric                        NULL
+      mont_as                        numeric                        NULL
+      mont_fact                      numeric                        NULL
+      num_assure                     character varying              NULL
+      rang_ad                        character varying              NULL
+      code_centre                    character varying              NULL
+      tp                             character                      NULL
+      taux                           character                      NULL
+      code_affect                    character varying              NULL
+      conv                           character                      NULL
+      type_consult                   character varying              NULL
+      prescripteur                   character varying              NULL
+      date_soin                      date                           NULL
+      risque                         character                      NULL
+      statut_fact                    character                      NULL
+      verifcms                       character                      NULL
+      type_signature                 character                      NULL
+      verif_fact                     character                      NULL
+      mont_maj_fae                   numeric                        NULL
+      mont_maj                       numeric                        NULL
+      type_maj                       integer                        NOT NULL
+      code_centre_as                 character                      NULL
+      code_sp                        character varying              NULL
+      type_ord                       character                      NULL
+      motif_med                      character varying              NULL
+      id_user                        integer                        NULL
+      signature                      xml                            NULL
+      num_serie                      bigint                         NULL
+      date_envoi_sms                 timestamp without time zone    NULL
+      date_fin_droit                 date                           NULL
+      date_fin_droit_benef           date                           NULL
+      version                        character varying              NULL
+      code_covid                     character varying              NULL
+      fact_xml                       xml                            NULL
+      nat_remb                       character varying              NULL
+      mont_mut                       numeric                        NULL
+      date_fin_mut                   date                           NULL
+      code_mut                       character varying              NULL
+      date_synchro                   timestamp without time zone    NULL
+      adresse_ip                     character varying              NULL
+      nom_pc                         character varying              NULL
+      obs                            character varying              NULL
+      ref_cm                         character varying              NULL
+      num_serie_ps                   bigint                         NULL
+      version_carte                  integer                        NULL
+      echifa                         boolean                        NULL
+      id_fact_echifa                 bigint                         NULL
+      e_ord                          boolean                        NULL
+      id_e_ord                       bigint                         NULL
+PASS  PH5.02 facture — full 53-column structure
+    etat: character(1)
+PASS  PH5.03 facture — etat column type
+    mont_fact: numeric precision=11 scale=2
+PASS  PH5.04 facture — mont_fact column type
+    signature column: xml
+PASS  PH5.05 facture — signature column (xml)
+    FK constraints:
+      → bordereau.num_bord
+PASS  PH5.06 facture — FK1_FACTURE references bordereau(num_bord)
+
+=== PHASE 6 — VALIDATION DES BORDEREAUX ===
+    Total bordereaux: 0
+PASS  PH6.01 bordereau — total count
+    bordereau (11 columns):
+      id_bord                   bigint                         DEFAULT=nextval('bordereau_id_bord_seq'::regclass)
+      num_bord                  character varying              
+      code_centre               character varying              
+      etat                      character                      
+      id_user_cloture           integer                        
+      poste_cloture             character varying              
+      mont_vir                  numeric                        DEFAULT=0
+      duplicata                 boolean                        
+      date_cloture              timestamp without time zone    DEFAULT='1900-01-01 00:00:00'::timestamp without time zone
+      date_ouverture            timestamp without time zone    DEFAULT='1900-01-01 00:00:00'::timestamp without time zone
+      date_depot_ftp            timestamp without time zone    DEFAULT='1900-01-01 00:00:00'::timestamp without time zone
+PASS  PH6.02 bordereau — 11 columns
+    PK: num_bord
+PASS  PH6.03 bordereau — PK num_bord
+    UN_BORDEREAU (UNIQUE)
+    PK_BORDEREAU (PRIMARY KEY)
+PASS  PH6.04 bordereau — UNIQUE on num_bord
+    Latest bordereaux: 0
+PASS  PH6.05 bordereau — sample data
+    Orphaned factures (num_bord not in bordereau): 0
+PASS  PH6.06 facture → bordereau FK integrity
+
+=== PHASE 7 — VALIDATION DES MÉDICAMENTS ===
+    Total medicaments: 7596
+PASS  PH7.01 medicament — total count
+    medicament (29 columns):
+      num_enr                   character varying        
+      nom_com                   character varying        
+      nom_dci                   character varying        
+      dosage                    character varying        
+      unite                     character varying        
+      conditionnement           character varying        
+      convention                character                
+      remboursable              character                
+      date_remboursement        character varying        
+      date_arret_remboursement  character varying        
+      date_decision             character varying        
+      tarif_ref                 numeric                  
+      taux                      numeric                  
+      code_forme                character varying        
+      tableau                   character                
+      hopital                   character                
+      secteur_sanitaire         character                
+      officine                  character                
+      pays                      character varying        
+      laboratoire               character varying        
+      cm                        character                
+      code_medic                character varying        
+      date_tr                   character varying        
+      observation               character varying        
+      code_dci                  character varying        
+      code_sp                   character varying        
+      inf_tr                    character                
+      generic                   character                
+      medic                     character                
+PASS  PH7.02 medicament — 29 columns
+    PK: num_enr
+PASS  PH7.03 medicament — PK num_enr
+    Sample:
+      [00010] ZYRTEC — tarif_ref=60.00
+      [00011] VIRLIX — tarif_ref=90.00
+      [00012] CERIN — tarif_ref=60.00
+      [00013] ZERAN — tarif_ref=60.00
+      [00014] ALERID — tarif_ref=60.00
+PASS  PH7.04 medicament — sample (LIMIT 5)
+    Columns: num_enr, nom_com, nom_dci, dosage, unite, conditionnement, convention, remboursable, date_remboursement, date_arret_remboursement, date_decision, tarif_ref, taux, code_forme, tableau, hopital, secteur_sanitaire, officine, pays, laboratoire, cm, code_medic, date_tr, observation, code_dci, code_sp, inf_tr, generic, medic
+PASS  PH7.05 medicament — column name list
+
+=== PHASE 8 — VALIDATION DE LA TABLE ln ===
+    Total ln rows: 7412276
+PASS  PH8.01 ln — total count
+    ln: 1 column(s)
+      num_serie character varying(16)
+PASS  PH8.02 ln — structure (1 column: num_serie varchar(16))
+    ln indexes: 0
+PASS  PH8.03 ln — indexes
+    Sample ln:
+                     
+                      
+      oooooooooooooooo
+      
+      
+PASS  PH8.04 ln — sample (LIMIT 5)
+    Total: 7412276 | Distinct: 3706134 | Duplicates: 3706142
+PASS  PH8.05 ln — unique vs total
+
+=== PHASE 10 — POST-CAPTURE: Proof of Non-Write ===
+  ┌───────────────────────────────────────────────────────┐
+  │              BEFORE → AFTER                          │
+  ├───────────────────────────────────────────────────────┤
+  │ facture:             0 → 0        OK           │
+  │ detail_fact:         0 → 0        OK           │
+  │ bordereau:           0 → 0        OK           │
+  │ parametre:           1 → 1        OK           │
+  │ medicament:       7596 → 7596     OK           │
+  │ signature:           0 → 0        OK           │
+  │ ln:            7412276 → 7412276  OK           │
+  │ next_num_fact:       1 → 1        OK           │
+  │ next_num_bord:     215 → 215      OK           │
+  └───────────────────────────────────────────────────────┘
+
+  INSERT  = 0
+  UPDATE  = 0
+  DELETE  = 0
+  TRUNCATE = 0
+PASS  PH10.01 No data modification
+
+=== FINAL SUMMARY ===
+  Total tests:  62
+  Passed:       62
+  Failed:       0
+  Status:       ALL PASS
