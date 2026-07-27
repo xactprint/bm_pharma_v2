@@ -1,0 +1,2 @@
+2026-07-27 18:25:30 CEST LOG:  redirection des traces vers le processus de récupération des traces
+2026-07-27 18:25:30 CEST ASTUCE :  Les prochaines traces apparaîtront dans le répertoire « pg_log ».

@@ -3,7 +3,7 @@ using System;
 using System.Threading.Tasks;
 
 const string DEFAULT_TEST_CONN = "Host=localhost;Port=5433;Database=CHIFA_OFFICINE;Username=pharm;Password=pharm;TrustServerCertificate=true;SslMode=Disable;Timeout=5;CommandTimeout=10;";
-const string DEFAULT_REAL_CONN = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=postgres;SslMode=Disable;TrustServerCertificate=true;Timeout=5;CommandTimeout=10;";
+const string DEFAULT_REAL_CONN = "Host=127.0.0.1;Port=5432;Database=CHIFA_OFFICINE;Username=pharm;Password=;SslMode=Disable;TrustServerCertificate=true;Timeout=5;CommandTimeout=10;";
 
 string connectionString;
 string targetLabel;

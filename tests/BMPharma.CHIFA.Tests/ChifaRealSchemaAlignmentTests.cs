@@ -41,14 +41,14 @@ public class ChifaRealSchemaAlignmentTests
     #region Phase 1: Connection Configuration
 
     [Fact]
-    public void CONN001_ConnectionString_UsesPostgresUser()
+    public void CONN001_ConnectionString_UsesPharmUser()
     {
         var config = new ChifaIntegrationConfig
         {
-            ConnectionString = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=postgres;SslMode=Disable;TrustServerCertificate=true"
+            ConnectionString = "Host=127.0.0.1;Port=5432;Database=CHIFA_OFFICINE;Username=pharm;Password=;SslMode=Disable;TrustServerCertificate=true"
         };
-        config.ConnectionString.Should().Contain("Username=postgres");
-        config.ConnectionString.Should().NotContain("Username=pharm");
+        config.ConnectionString.Should().Contain("Username=pharm");
+        config.ConnectionString.Should().NotContain("Username=postgres");
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class ChifaRealSchemaAlignmentTests
     {
         var config = new ChifaIntegrationConfig
         {
-            ConnectionString = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=postgres;SslMode=Disable;TrustServerCertificate=true;Timeout=10;CommandTimeout=30"
+            ConnectionString = "Host=127.0.0.1;Port=5432;Database=CHIFA_OFFICINE;Username=pharm;Password=;SslMode=Disable;TrustServerCertificate=true;Timeout=10;CommandTimeout=30"
         };
         config.ConnectionString.Should().Contain("Timeout=10");
         config.ConnectionString.Should().Contain("CommandTimeout=30");
@@ -93,7 +93,7 @@ public class ChifaRealSchemaAlignmentTests
     {
         var config = new ChifaIntegrationConfig
         {
-            ConnectionString = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=postgres;SslMode=Disable;TrustServerCertificate=true"
+            ConnectionString = "Host=127.0.0.1;Port=5432;Database=CHIFA_OFFICINE;Username=pharm;Password=;SslMode=Disable;TrustServerCertificate=true"
         };
         config.ConnectionString.Should().Contain("SslMode=Disable");
     }
@@ -493,7 +493,7 @@ public class ChifaRealSchemaAlignmentTests
     {
         var config = new ChifaIntegrationConfig
         {
-            ConnectionString = "Host=localhost;Port=5432;Database=CHIFA_OFFICINE;Username=postgres;Password=test123;SslMode=Disable;TrustServerCertificate=true"
+            ConnectionString = "Host=127.0.0.1;Port=5432;Database=CHIFA_OFFICINE;Username=pharm;Password=test123;SslMode=Disable;TrustServerCertificate=true"
         };
         var trimmed = config.ConnectionString.Replace("Password=test123", "Password=***");
         trimmed.Should().NotContain("test123");
