@@ -69,8 +69,10 @@ public class ChifaPostgresInvoiceService : IChifaInvoiceService
             try
             {
                 var numFact = request.NumFact;
-                var now = DateTime.UtcNow;
-                var dateSoin = request.DateSoin == default ? DateTime.Today : request.DateSoin;
+                var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                var dateSoin = DateTime.SpecifyKind(
+                    (request.DateSoin == default ? DateTime.UtcNow.Date : request.DateSoin.Date),
+                    DateTimeKind.Unspecified);
 
                 var montFact = request.Lines.Sum(l => l.Quantite * l.PrixUnit);
                 var montAs = Math.Round(montFact * 0.70m, 2);
@@ -113,6 +115,7 @@ public class ChifaPostgresInvoiceService : IChifaInvoiceService
                 };
 
                 _context.Factures.Add(facture);
+                await _context.SaveChangesAsync(cancellationToken);
 
                 foreach (var line in request.Lines)
                 {

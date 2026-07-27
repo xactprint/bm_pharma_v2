@@ -1,0 +1,66 @@
+========================================================
+  BM-PHASE-007-I — ROLLBACK CONTRÔLÉ TST002
+  Date: 2026-07-27T20:26:04.3973795Z
+========================================================
+Connected: 9.3.4 | pharm@CHIFA_OFFICINE
+
+=== PRE-ROLLBACK SNAPSHOT ===
+  facture      = 1
+  detail_fact  = 1
+  bordereau    = 0
+  signature    = 0
+  next_num_fact = 1
+  next_num_bord = 215
+
+  TST002 facture: 1
+  TST002 detail_fact: 1
+
+=== ROLLBACK — DELETE TST002 ===
+  ✓ DELETE detail_fact: 1 row(s) deleted
+  ✓ DELETE facture: 1 row(s) deleted
+  ✓ TRANSACTION COMMITTED
+
+=== POST-ROLLBACK VERIFICATION ===
+  facture      = 0
+  detail_fact  = 0
+  bordereau    = 0
+  signature    = 0
+  ln           = 7412276
+  medicament   = 7596
+  next_num_fact = 1
+  next_num_bord = 215
+  code_centre   = 11600
+  code_ps       = 1234567890
+
+  TST002 facture rows: 0 (must be 0)
+  TST002 detail_fact rows: 0 (must be 0)
+
+=== COMPARISON: BASELINE vs POST-ROLLBACK ===
+  ┌──────────────────────┬──────────┬──────────┬──────────┬──────────┐
+  │ Table/Counter        │ Baseline │ Pre-RB   │ Post-RB  │ Statut   │
+  ├──────────────────────┼──────────┼──────────┼──────────┼──────────┤
+  │ facture              │ 0        │ 1        │ 0        │ OK       │
+  │ detail_fact          │ 0        │ 1        │ 0        │ OK       │
+  │ bordereau            │ 0        │ 0        │ 0        │ OK       │
+  │ signature            │ 0        │ 0        │ 0        │ OK       │
+  │ next_num_fact        │ 1        │ 1        │ 1        │ OK       │
+  │ next_num_bord        │ 215      │ 215      │ 215      │ OK       │
+  │ ln                   │ 7412276  │ 7412276  │ 7412276  │ OK       │
+  │ medicament           │ 7596     │ 7596     │ 7596     │ OK       │
+  └──────────────────────┴──────────┴──────────┴──────────┴──────────┘
+
+=== FINAL VALIDATION ===
+  ✓ facture rows: 0 (expected 0)
+  ✓ detail_fact rows: 0 (expected 0)
+  ✓ bordereau rows: 0 (expected 0)
+  ✓ signature rows: 0 (expected 0)
+  ✓ next_num_fact: 1 (expected 1)
+  ✓ next_num_bord: 215 (expected 215)
+  ✓ ln rows: 7412276 (expected 7412276)
+  ✓ medicament rows: 7596 (expected 7596)
+  ✓ TST001 facture gone: 0 (expected 0)
+  ✓ TST002 detail_fact gone: 0 (expected 0)
+
+  ═══════════════════════════════════════════════════
+  ║  ROLLBACK COMPLET — BASELINE RESTAURÉ          ║
+  ═══════════════════════════════════════════════════

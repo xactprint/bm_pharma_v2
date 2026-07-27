@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BMPharma.CHIFA\BMPharma.CHIFA.csproj" />
+    <ProjectReference Include="..\..\src\BMPharma.Persistence.PostgreSQL\BMPharma.Persistence.PostgreSQL.csproj" />
+    <ProjectReference Include="..\..\src\BMPharma.Domain\BMPharma.Domain.csproj" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
+  </ItemGroup>
+</Project>

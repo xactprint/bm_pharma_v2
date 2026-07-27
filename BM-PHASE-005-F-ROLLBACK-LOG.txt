@@ -1,5 +1,5 @@
 Connected: 9.3.4 | pharm@CHIFA_OFFICINE
-Timestamp: 2026-07-27T19:49:45.8117663Z
+Timestamp: 2026-07-27T20:10:04.9203506Z
 
 === PRE-ROLLBACK SNAPSHOT ===
   facture      = 0

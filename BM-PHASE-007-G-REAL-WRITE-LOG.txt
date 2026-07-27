@@ -1,0 +1,105 @@
+========================================================
+  BM-PHASE-007-G — ÉCRITURE RÉELLE EF CORE
+  Date: 2026-07-27T20:14:05.4164194Z
+========================================================
+
+=== PRE-WRITE VERIFICATION ===
+  Connected: 9.3.4 | pharm@CHIFA_OFFICINE
+  Host: 127.0.0.1 | Port: 5432 | Database: CHIFA_OFFICINE
+  TST002 exists: NO (correct)
+  facture      = 0
+  detail_fact  = 0
+  bordereau    = 0
+  signature    = 0
+  next_num_fact = 1
+  next_num_bord = 215
+  Integration mode: Test
+  ChifaWriteGuard: AUTORISE (mode Test)
+
+=== EF CORE REAL WRITE ===
+  Calling ChifaPostgresInvoiceService.CreateInvoiceAsync...
+  Duration: 877ms
+  Success: True
+  ChifaNumFact: TST002
+
+=== POST-WRITE VERIFICATION ===
+  TST002 facture rows: 1 (must be 1)
+
+  Facture TST002:
+    num_fact     = TST002
+    num_assure   = TST99999
+    code_centre  = 11600
+    etat         = 0
+    mont_fact    = 120.00
+    mont_as      = 84.00
+    mont_off     = 120.00
+    date_fact    = 27/07/2026 20:14:06
+    date_soin    = 27/07/2026 00:00:00
+    num_bord     = 
+    rang_ad      = 1
+    tp           = 1
+    taux         = 3
+    code_affect  = 01
+    conv         = 1
+    type_consult = 01
+    prescripteur = BM PHARMA
+    risque       = 0
+    statut_fact  = 1
+    verifcms     = 0
+    type_signature = 0
+    verif_fact   = 0
+    version      = 2.0.0
+
+  Detail_fact TST002 rows: 1 (must be 1)
+
+  Detail TST002:
+    num_fact       = TST002
+    num_enr        = 00010
+    ppa            = 60.00
+    qte            = 2
+    mont           = 120.00
+    mont_as        = 84.00
+    mont_pharm     = 36.00
+    num_enr_prescrit = 00010
+    num_lot        = LOT002
+    duree_trait    = 30
+    tarif_ref      = 60.00
+    posologie      = 1/day
+
+  Orphan detail_fact rows: 0 (must be 0)
+  bordereau    = 0 (must be 0)
+  signature    = 0 (must be 0)
+  next_num_fact = 1 (must be 1)
+  next_num_bord = 215 (must be 215)
+  facture (all) = 1 (must be 1)
+  detail_fact (all) = 1 (must be 1)
+  ln           = 7412276
+  medicament   = 7596
+
+=== COMPARISON: AVANT / APRÈS ===
+  ┌──────────────────────┬──────────┬──────────┬──────────┐
+  │ Table/Counter        │ Avant    │ Après    │ Statut   │
+  ├──────────────────────┼──────────┼──────────┼──────────┤
+  │ facture              │ 0        │ 1        │ OK       │
+  │ detail_fact          │ 0        │ 1        │ OK       │
+  │ bordereau            │ 0        │ 0        │ OK       │
+  │ signature            │ 0        │ 0        │ OK       │
+  │ next_num_fact        │ 1        │ 1        │ OK       │
+  │ next_num_bord        │ 215      │ 215      │ OK       │
+  └──────────────────────┴──────────┴──────────┴──────────┘
+
+=== FINAL RESULT ===
+  ✓ TST002 facture exists: 1 (expected 1)
+  ✓ TST002 detail_fact exists: 1 (expected 1)
+  ✓ No orphans: 0 (expected 0)
+  ✓ bordereau unchanged: 0 (expected 0)
+  ✓ signature unchanged: 0 (expected 0)
+  ✓ next_num_fact unchanged: 1 (expected 1)
+  ✓ next_num_bord unchanged: 215 (expected 215)
+
+  ═══════════════════════════════════════════════════════════
+  ║  ÉCRITURE RÉELLE RÉUSSIE                             ║
+  ║  TST002 créée via EF Core sur CHIFA_OFFICINE         ║
+  ═══════════════════════════════════════════════════════════
+
+  ⛔ STOP — EN ATTENTE D'APPROBATION POUR LE ROLLBACK

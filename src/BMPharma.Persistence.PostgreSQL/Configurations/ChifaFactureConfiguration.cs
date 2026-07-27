@@ -31,9 +31,13 @@ public class ChifaFactureConfiguration : IEntityTypeConfiguration<ChifaFacture>
         builder.Property(e => e.CodeSp).HasMaxLength(2);
         builder.Property(e => e.TypeOrd).HasMaxLength(1);
         builder.Property(e => e.MotifMed).HasMaxLength(16);
-        builder.Property(e => e.Signature).HasMaxLength(4000);
+        builder.Property(e => e.Signature).HasColumnType("xml");
         builder.Property(e => e.CodeCovid).HasMaxLength(20);
-        builder.Property(e => e.FactXml).HasMaxLength(4000);
+        builder.Property(e => e.FactXml).HasColumnType("xml");
+
+        builder.Property(e => e.DateFact).HasColumnType("timestamp without time zone");
+        builder.Property(e => e.DateSoin).HasColumnType("date");
+
         builder.Property(e => e.NatRemb).HasMaxLength(1);
         builder.Property(e => e.CodeMut).HasMaxLength(2);
         builder.Property(e => e.AdresseIp).HasMaxLength(15);
