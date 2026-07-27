@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using BMPharma.CHIFA.Interfaces;
-using BMPharma.Domain.Enums;
 using BMPharma.Persistence.PostgreSQL.Contexts;
+using BMPharma.Persistence.PostgreSQL.Entities.Chifa;
+using Npgsql;
 
 namespace BMPharma.CHIFA.Services;
 
@@ -58,13 +60,37 @@ public class ChifaPostgresBordereauService : IChifaBordereauService
 
         try
         {
-            using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+            using var transaction = await _context.Database.BeginTransactionAsync(
+                System.Data.IsolationLevel.ReadCommitted, cancellationToken);
 
             try
             {
                 _logger.LogInformation("Creating CHIFA bordereau {NumBord} with {InvoiceCount} invoices",
                     request.NumBord, request.InvoiceNumbers.Count);
 
+                var bordereau = new ChifaBordereau
+                {
+                    NumBord = request.NumBord,
+                    CodeCentre = "11600",
+                    Etat = "0",
+                    DateOuverture = DateTime.UtcNow,
+                    Duplicata = false
+                };
+
+                _context.Bordereaus.Add(bordereau);
+
+                foreach (var numFact in request.InvoiceNumbers)
+                {
+                    var facture = await _context.Factures
+                        .FirstOrDefaultAsync(f => f.NumFact == numFact, cancellationToken);
+
+                    if (facture != null)
+                    {
+                        facture.NumBord = request.NumBord;
+                    }
+                }
+
+                await _context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
                 sw.Stop();
@@ -94,11 +120,18 @@ public class ChifaPostgresBordereauService : IChifaBordereauService
         }
     }
 
-    public Task<string> GetNextBordereauNumberAsync(CancellationToken cancellationToken = default)
+    public async Task<string> GetNextBordereauNumberAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Getting next bordereau number");
-        var nextNum = 216;
-        return Task.FromResult(nextNum.ToString("D6"));
+        _logger.LogInformation("Getting next bordereau number via atomic UPDATE");
+
+        using var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "UPDATE parametre SET next_num_bord = next_num_bord + 1 RETURNING next_num_bord";
+        var result = await cmd.ExecuteScalarAsync(cancellationToken);
+        var num = Convert.ToInt32(result);
+        return num.ToString("D6");
     }
 
     public Task<ChifaBordereauResult> SignBordereauAsync(

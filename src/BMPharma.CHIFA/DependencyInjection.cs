@@ -49,6 +49,11 @@ public static class DependencyInjection
             services.AddScoped<IChifaTokenService, ChifaTokenServiceStub>();
             services.AddScoped<IChifaSigningService, ChifaSigningServiceStub>();
             services.AddScoped<IChifaAuditService, ChifaAuditService>();
+            services.AddScoped<IChifaNumberingService>(sp =>
+            {
+                var ctx = sp.GetRequiredService<ChifaWriteDbContext>();
+                return new ChifaNumberingService(ctx);
+            });
         }
         else
         {
@@ -58,6 +63,7 @@ public static class DependencyInjection
             services.AddScoped<IChifaTokenService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
             services.AddScoped<IChifaSigningService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
             services.AddScoped<IChifaAuditService, ChifaAuditService>();
+            services.AddScoped<IChifaNumberingService, ChifaNumberingServiceFake>();
         }
 
         return services;
@@ -98,6 +104,7 @@ public static class DependencyInjection
             services.AddScoped<IChifaBordereauService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
             services.AddScoped<IChifaTokenService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
             services.AddScoped<IChifaSigningService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaNumberingService, ChifaNumberingServiceFake>();
         }
         else
         {
@@ -111,6 +118,7 @@ public static class DependencyInjection
             services.AddScoped<IChifaBordereauService, ChifaPostgresBordereauService>();
             services.AddScoped<IChifaTokenService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
             services.AddScoped<IChifaSigningService>(sp => sp.GetRequiredService<FakeChifaIntegrationProvider>());
+            services.AddScoped<IChifaNumberingService, ChifaNumberingServiceFake>();
         }
 
         return services;

@@ -26,6 +26,8 @@ public class ChifaInvoiceLineRequest
     public int Medic { get; set; } = 1;
     public int Ts { get; set; } = 4;
     public int DureeTrait { get; set; } = 5;
+    public string? NumLot { get; set; }
+    public string? Posologie { get; set; }
 }
 
 public class ChifaInvoiceResult

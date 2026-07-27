@@ -1,9 +1,9 @@
 Connected: 9.3.4 | pharm@CHIFA_OFFICINE
-Timestamp: 2026-07-27T19:17:28.3656262Z
+Timestamp: 2026-07-27T19:49:45.8117663Z
 
 === PRE-ROLLBACK SNAPSHOT ===
-  facture      = 1
-  detail_fact  = 1
+  facture      = 0
+  detail_fact  = 0
   bordereau    = 0
   signature    = 0
   ln           = 7412276
@@ -14,12 +14,13 @@ Timestamp: 2026-07-27T19:17:28.3656262Z
   code_ps       = 1234567890
 
 === PRE-ROLLBACK VERIFICATION ===
-  TST001 facture rows: 1
-  TST001 detail_fact rows: 1
+  TST001 facture rows: 0
+  TST001 detail_fact rows: 0
+  WARNING: TST001 not found — nothing to rollback
 
 === 005-F: ROLLBACK — DELETE TST001 ===
-  ✓ DELETE detail_fact: 1 row(s) deleted
-  ✓ DELETE facture: 1 row(s) deleted
+  ✓ DELETE detail_fact: 0 row(s) deleted
+  ✓ DELETE facture: 0 row(s) deleted
   ✓ TRANSACTION COMMITTED
 
 === POST-ROLLBACK VERIFICATION ===
@@ -41,8 +42,8 @@ Timestamp: 2026-07-27T19:17:28.3656262Z
   ┌──────────────────────┬──────────┬──────────┬──────────┐
   │ Table/Counter        │ Baseline │ Pre-RB   │ Post-RB  │
   ├──────────────────────┼──────────┼──────────┼──────────┤
-  │ facture              │ 0        │ 1        │ 0        │
-  │ detail_fact          │ 0        │ 1        │ 0        │
+  │ facture              │ 0        │ 0        │ 0        │
+  │ detail_fact          │ 0        │ 0        │ 0        │
   │ bordereau            │ 0        │ 0        │ 0        │
   │ signature            │ 0        │ 0        │ 0        │
   │ ln                   │ 7412276  │ 7412276  │ 7412276  │
