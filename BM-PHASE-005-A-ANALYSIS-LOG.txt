@@ -1,0 +1,354 @@
+Connected: 9.3.4 | pharm@CHIFA_OFFICINE
+Timestamp: 2026-07-27T19:09:52.7729718Z
+
+=== 1. FACTURES — Structure ===
+  Physical columns: 53
+    num_fact                       character varying                   NOT NULL
+    date_fact                      timestamp without time zone         NULL    
+    etat                           character                           NULL    
+    num_bord                       character varying                   NULL    
+    mont_off                       numeric                             NULL    
+    mont_as                        numeric                             NULL    
+    mont_fact                      numeric                             NULL    
+    num_assure                     character varying                   NULL    
+    rang_ad                        character varying                   NULL    
+    code_centre                    character varying                   NULL    
+    tp                             character                           NULL    
+    taux                           character                           NULL    
+    code_affect                    character varying                   NULL    
+    conv                           character                           NULL    
+    type_consult                   character varying                   NULL    
+    prescripteur                   character varying                   NULL    
+    date_soin                      date                                NULL    
+    risque                         character                           NULL    
+    statut_fact                    character                           NULL    
+    verifcms                       character                           NULL    
+    type_signature                 character                           NULL    
+    verif_fact                     character                           NULL    
+    mont_maj_fae                   numeric                             NULL    
+    mont_maj                       numeric                             NULL    
+    type_maj                       integer                             NOT NULL
+    code_centre_as                 character                           NULL    
+    code_sp                        character varying                   NULL    
+    type_ord                       character                           NULL    
+    motif_med                      character varying                   NULL    
+    id_user                        integer                             NULL    
+    signature                      xml                                 NULL    
+    num_serie                      bigint                              NULL    
+    date_envoi_sms                 timestamp without time zone         NULL    
+    date_fin_droit                 date                                NULL    
+    date_fin_droit_benef           date                                NULL    
+    version                        character varying                   NULL    
+    code_covid                     character varying                   NULL    
+    fact_xml                       xml                                 NULL    
+    nat_remb                       character varying                   NULL     DEFAULT=0
+    mont_mut                       numeric                             NULL     DEFAULT=0
+    date_fin_mut                   date                                NULL     DEFAULT='1900-01-01'::date
+    code_mut                       character varying                   NULL    
+    date_synchro                   timestamp without time zone         NULL    
+    adresse_ip                     character varying                   NULL    
+    nom_pc                         character varying                   NULL    
+    obs                            character varying                   NULL    
+    ref_cm                         character varying                   NULL    
+    num_serie_ps                   bigint                              NULL     DEFAULT=(-1)
+    version_carte                  integer                             NULL     DEFAULT=1
+    echifa                         boolean                             NULL     DEFAULT=false
+    id_fact_echifa                 bigint                              NULL     DEFAULT=(-1)
+    e_ord                          boolean                             NULL     DEFAULT=false
+    id_e_ord                       bigint                              NULL     DEFAULT=(-1)
+
+  Row count: 0
+
+=== 1.1 NOT NULL columns ===
+  NOT NULL columns: 2
+    num_fact (character varying)
+    type_maj (integer)
+
+=== 1.2 num_fact analysis ===
+  Type: varchar(8)
+  PK: num_fact (PK_FACTURE)
+  Format: CHIFA uses alphanumeric codes like '000001', '000002'...
+
+=== 1.3 etat values (if any exist) ===
+  Distinct etat values: 0
+
+=== 1.4 num_bord FK to bordereau ===
+  FK1_FACTURE: facture.num_bord → bordereau.num_bord
+  Type: varchar(6)
+  Nullable: YES (facture can exist without bordereau)
+
+=== 1.5 type_maj ===
+  Type: integer, NOT NULL
+  Default: none visible — must be provided
+
+=== 1.6 signature column ===
+  Type: xml, NULLABLE
+
+=== 1.7 fact_xml column ===
+  Type: xml, NULLABLE
+
+=== 2. DETAIL_FACT — Structure ===
+  Physical columns: 20
+    num_fact                  character varying              NOT NULL
+    num_lot                   character varying              NULL    
+    num_enr                   character varying              NOT NULL
+    qte                       numeric                        NOT NULL
+    ppa                       numeric                        NOT NULL
+    mont                      numeric                        NOT NULL
+    mont_as                   numeric                        NULL    
+    mont_pharm                numeric                        NULL    
+    maj_local                 numeric                        NULL    
+    num_enr_prescrit          character varying              NOT NULL
+    maj_sub                   numeric                        NULL    
+    duree_trait               numeric                        NULL    
+    tarif_ref                 numeric                        NULL    
+    posologie                 character varying              NULL    
+    remboursable              boolean                        NULL    
+    local                     boolean                        NULL    
+    inf_tr                    boolean                        NULL    
+    applic_tr                 boolean                        NULL    
+    medic                     boolean                        NULL    
+    ts                        boolean                        NULL    
+
+  Row count: 0
+
+=== 2.1 PK (num_fact, num_enr, ppa) ===
+  Composite PK: (num_fact, num_enr, ppa)
+  num_fact: varchar(8) — references facture.num_fact
+  num_enr: varchar(5) — NOT NULL
+  ppa: numeric(10,2) — NOT NULL
+
+=== 2.2 NOT NULL columns ===
+  NOT NULL columns: 6
+    num_fact (character varying)
+    num_enr (character varying)
+    qte (numeric)
+    ppa (numeric)
+    mont (numeric)
+    num_enr_prescrit (character varying)
+
+=== 2.3 num_enr format ===
+  varchar(5) — references medicament.num_enr
+  Must be a valid existing medicament code
+
+=== 3. BORDEREAUX — Structure ===
+  Physical columns: 11
+    id_bord                   bigint                         NOT NULL DEFAULT=nextval('bordereau_id_bord_seq'::regclass)
+    num_bord                  character varying              NOT NULL
+    code_centre               character varying              NOT NULL
+    etat                      character                      NULL    
+    id_user_cloture           integer                        NULL    
+    poste_cloture             character varying              NULL    
+    mont_vir                  numeric                        NULL     DEFAULT=0
+    duplicata                 boolean                        NULL    
+    date_cloture              timestamp without time zone    NULL     DEFAULT='1900-01-01 00:00:00'::timestamp without time zone
+    date_ouverture            timestamp without time zone    NULL     DEFAULT='1900-01-01 00:00:00'::timestamp without time zone
+    date_depot_ftp            timestamp without time zone    NULL     DEFAULT='1900-01-01 00:00:00'::timestamp without time zone
+
+  Row count: 0
+
+=== 3.1 num_bord format ===
+  PK: num_bord (varchar(6))
+  UNIQUE constraint: UN_BORDEREAU
+  Also has id_bord (bigint, auto-increment via bordereau_id_bord_seq)
+  Format: typically '000001', '000002'...
+
+=== 3.2 bordereau constraints ===
+  PK: num_bord
+  UNIQUE: num_bord
+  NOT NULL: num_bord, code_centre
+
+=== 4. PARAMETRES — Current Values ===
+  Total columns: 58
+
+=== 4.1 Critical counters ===
+  next_num_fact = 1 (OBSERVED — NOT MODIFIED)
+  next_num_bord = 215 (OBSERVED — NOT MODIFIED)
+  code_centre   = 11600
+  code_ps       = 1234567890
+  annee         = 2024
+  version       = 3.0.4.3
+
+=== 4.2 Full parametre row ===
+    code_ps                             = 1234567890
+    nom_pharmacie                       = NULL
+    nom                                 = PHARMACIE
+    prenom                              = EXEMPLE
+    adresse                             = 01 RUE ALGER
+    num_tel                             = NULL
+    num_fax                             = NULL
+    email                               = NULL
+    code_sp                             = 40
+    nis                                 = NULL
+    nico                                = NULL
+    ndps                                = NULL
+    code_centre                         = 11600
+    convention                          = O
+    ref_convention                      = NULL
+    ref_bancaire                        = NULL
+    mode_reglement                      = NULL
+    mont_max                            = 3000.00
+    contact                             = NULL
+    mont_maj_fae                        = 5
+    mont_maj_sub                        = 15
+    taux_maj_local                      = 20
+    taux_maj_inf_tr                     = 10
+    version                             = 3.0.4.3
+    date_medicament                     = 16/07/2026 00:00:00
+    date_liste_noire                    = 24/07/2026 00:00:00
+    date_liste_mc                       = 23/07/2026 00:00:00
+    date_version                        = 28/06/2026 14:26:32
+    date_specialite                     = 02/02/2025 00:00:00
+    date_tarif                          = 02/12/2024 00:00:00
+    date_note                           = 28/06/2026 00:00:00
+    date_convention                     = NULL
+    nb_ord_max                          = 2
+    officine_dgsn                       = False
+    chemin_backup                       = NULL
+    heure_backup                        = NULL
+    nb_backup                           = NULL
+    next_num_fact                       = 1
+    next_num_bord                       = 215
+    poste_serveur_chifa                 = NULL
+    poste_telech                        = NULL
+    date_api_chifa                      = 07/07/2026 00:00:00
+    date_verif_maj                      = 25/07/2026 13:20:18
+    date_verif_cm                       = 16/07/2026 10:20:03
+    date_mut_radie                      = 23/07/2026 00:00:00
+    params                              = 3445
+7596
+5560
+2036
+3216914.1
+1307101.16
+1641
+1034
+607
+1825791.57
+1023165.33
+    version_db                          = 1065
+    version_ftp                         = 3043
+    date_version_ftp                    = 15/07/2026
+    annee                               = 2024
+    date_ln_complete                    = 20/07/2026
+    backup_start                        = NULL
+    backup_exit                         = NULL
+    date_medicament2                    = 08/02/2024 00:00:00
+    date_medic_ppa                      = 12/05/2024
+    access_token                        = NULL
+    refresh_token                       = NULL
+    date_medic_demuni                   = 16/02/2026 00:00:00
+
+=== 5. MEDICAMENT — For test data ===
+  Total: 7596
+
+=== 5.1 Sample valid medicaments for test ===
+  Sample (first 10):
+    [00010] ZYRTEC                         tarif_ref=60.00 conv=O remb=O form=143
+    [00011] VIRLIX                         tarif_ref=90.00 conv=O remb=O form=014
+    [00012] CERIN                          tarif_ref=60.00 conv=O remb=O form=143
+    [00013] ZERAN                          tarif_ref=60.00 conv=O remb=O form=014
+    [00014] ALERID                         tarif_ref=60.00 conv=O remb=O form=014
+    [00015] CETRYN                         tarif_ref=60.00 conv=O remb=O form=014
+    [00016] HISTARIZINE                    tarif_ref=60.00 conv=O remb=O form=161
+    [00019] HISTAGAN                       tarif_ref=40.00 conv=O remb=O form=014
+    [00020] POLARAMINE                     tarif_ref=60.00 conv=O remb=O form=014
+    [00021] CLARAMINE                      tarif_ref=60.00 conv=O remb=O form=014
+
+=== 5.2 num_enr format ===
+  num_enr length distribution:
+    length=5 → 7596 rows
+
+=== 6. SIGNATURE — Structure ===
+  Columns: 2
+    num_fact (character varying)
+    sign (text)
+  Rows: 0
+
+=== 7. LN — Quick stats ===
+  Total rows: 7412276
+  Distinct: 3706134
+
+=== 8. FK INTEGRITY CHECK ===
+  Orphan factures (no bordereau): 0
+  Orphan detail_fact (no facture): 0
+  Orphan signatures (no facture): 0
+
+=== 9. PROPOSED TEST DATA ANALYSIS ===
+  Proposed num_fact: TST191047
+  Length: 9 (must be ≤ 8)
+  Collision check: 0 existing (must be 0)
+  Proposed num_enr: 00010 (from real medicament)
+  Medicament: ZYRTEC
+  tarif_ref: 60.00
+
+  Proposed facture INSERT columns:
+    num_fact       = 'TST191047' (varchar(8), PK)
+    date_fact      = now() (timestamp)
+    etat           = '0' (character(1))
+    num_bord       = NULL (no bordereau in this PoC)
+    mont_off       = 100.00 (numeric(10,2))
+    mont_as        = 70.00 (numeric(10,2))
+    mont_fact      = 70.00 (numeric(11,2))
+    num_assure     = 'TST99999' (synthetic)
+    rang_ad        = '1' (varchar(2))
+    code_centre    = '11600' (real centre)
+    tp             = '1' (character(1))
+    taux           = '3' (character(1))
+    code_affect    = '01' (varchar(2))
+    conv           = '1' (character(1))
+    type_consult   = '01' (varchar(2))
+    prescripteur   = 'DR TEST' (varchar(50))
+    date_soin      = today (date)
+    risque         = '0' (character(1))
+    statut_fact    = '1' (character(1))
+    verifcms       = '0' (character(1))
+    type_signature = '0' (character(1))
+    verif_fact     = '0' (character(1))
+    mont_maj_fae   = 0 (numeric(4,2))
+    mont_maj       = 0.00 (numeric(11,2))
+    type_maj       = 0 (integer, NOT NULL)
+    version        = '2.0.0' (varchar(10))
+    signature      = NULL (xml)
+    fact_xml       = NULL (xml)
+    echifa         = false (boolean)
+    e_ord          = false (boolean)
+
+  Proposed detail_fact INSERT columns:
+    num_fact         = 'TST191047' (FK → facture)
+    num_lot          = 'LOT001' (varchar(6))
+    num_enr          = '00010' (FK → medicament)
+    qte              = 2 (numeric(3,0), NOT NULL)
+    ppa              = 30.00 (numeric(10,2), NOT NULL)
+    mont             = 60.00 (numeric(10,2), NOT NULL)
+    mont_as          = 42.00 (numeric(10,2))
+    mont_pharm       = 18.00 (numeric(10,2))
+    maj_local        = 0 (numeric(10,2))
+    num_enr_prescrit = '00010' (varchar(5), NOT NULL)
+    maj_sub          = 0 (numeric(3,0))
+    duree_trait      = 30 (numeric(3,0))
+    tarif_ref        = 60.00 (numeric(10,2))
+    posologie        = '1/day' (varchar(50))
+    remboursable     = true (boolean)
+    local            = false (boolean)
+    inf_tr           = false (boolean)
+    applic_tr        = false (boolean)
+    medic            = true (boolean)
+    ts               = false (boolean)
+
+=== 10. SNAPSHOT — BASELINE STATE ===
+  ┌────────────────────────────────────────────┐
+  │         BM-PHASE-005-A SNAPSHOT            │
+  ├────────────────────────────────────────────┤
+  │ facture rows      = 0                        │
+  │ detail_fact rows  = 0                        │
+  │ bordereau rows    = 0                        │
+  │ parametre rows    = 1                      │
+  │ medicament rows   = 7596                     │
+  │ signature rows    = 0                        │
+  │ ln rows           = 7412276                  │
+  │ next_num_fact     = 1                        │
+  │ next_num_bord     = 215                      │
+  │ code_centre       = 11600                    │
+  │ code_ps           = 1234567890               │
+  └────────────────────────────────────────────┘

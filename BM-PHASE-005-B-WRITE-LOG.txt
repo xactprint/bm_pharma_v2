@@ -1,0 +1,120 @@
+Connected: 9.3.4 | pharm@CHIFA_OFFICINE
+Timestamp: 2026-07-27T19:15:00.4166092Z
+
+=== PRE-WRITE SNAPSHOT ===
+  facture      = 0
+  detail_fact  = 0
+  bordereau    = 0
+  signature    = 0
+  ln           = 7412276
+  medicament   = 7596
+  next_num_fact = 1
+  next_num_bord = 215
+
+=== 005-B: WRITE TEST INVOICE TST001 ===
+  Collision check: OK (0 existing)
+  Medicament check: OK (00010 = ZYRTEC)
+
+  INSERT facture...
+  ✓ facture INSERTED: TST001
+  ✓ detail_fact INSERTED: (TST001, 00010, 30.00)
+  ✓ TRANSACTION COMMITTED
+
+=== 005-C: VALIDATE WRITE ===
+  facture rows for TST001: 1
+    num_fact       = TST001
+    date_fact      = 27/07/2026 21:15:01
+    etat           = 0
+    num_bord       = NULL
+    mont_off       = 100.00
+    mont_as        = 70.00
+    mont_fact      = 70.00
+    num_assure     = TST99999
+    code_centre    = 11600
+    type_maj       = 0
+    signature      = NULL
+    fact_xml       = NULL
+    echifa         = False
+    e_ord          = False
+
+  detail_fact rows for TST001: 1
+    num_fact         = TST001
+    num_lot          = LOT001
+    num_enr          = 00010
+    qte              = 2
+    ppa              = 30.00
+    mont             = 60.00
+    mont_as          = 42.00
+    mont_pharm       = 18.00
+    num_enr_prescrit = 00010
+    remboursable     = True
+    medic            = True
+
+  FK integrity: orphan_details = 0 (must be 0)
+
+  POST-WRITE COUNTS:
+    facture      : 0 → 1
+    detail_fact  : 0 → 1
+    bordereau    : 0 → 0
+    signature    : 0 → 0
+    next_num_fact: 1 → 1
+    next_num_bord: 215 → 215
+
+=== 005-D: CHIFA-OFFICINE UI VIEW ===
+  The following data is now visible to CHIFA-OFFICINE:
+
+  Facture TST001:
+    Numéro facture : TST001
+    Date facture   : now
+    État           : 0 (brouillon)
+    Bordereau      : NULL (pas de bordereau)
+    Montant OFF    : 100.00 DA
+    Montant AS     : 70.00 DA
+    Montant fact   : 70.00 DA
+    Num assure     : TST99999
+    Code centre    : 11600
+    Signature      : NULL
+    fact_xml       : NULL
+
+  Detail fact TST001:
+    Medicament     : 00010 (ZYRTEC)
+    Quantité       : 2
+    PPA            : 30.00 DA
+    Montant        : 60.00 DA
+    Montant AS     : 42.00 DA
+    Montant pharm  : 18.00 DA
+    Convention     : O
+
+  ⚠ Ces données sont MAINTENANT visibles dans CHIFA-OFFICINE.
+  ⚠ NE PAS fermer/recharger l'application CHIFA pendant le test.
+  ⚠ Le rollback supprimera ces données après approbation.
+
+=== 005-E: STOP — ATTENTE APPROBATION ROLLBACK ===
+
+  ┌─────────────────────────────────────────────────────┐
+  │          BM-PHASE-005-E — STOP OBLIGATOIRE          │
+  ├─────────────────────────────────────────────────────┤
+  │                                                     │
+  │  Écriture TST001 terminée avec succès.              │
+  │  Les données sont maintenant dans CHIFA_OFFICINE.   │
+  │                                                     │
+  │  ATTENTE: Autorisation de procéder au rollback.     │
+  │                                                     │
+  │  Le rollback devra confirmer:                       │
+  │    ✓ facture = état initial (0 rows)                │
+  │    ✓ detail_fact = état initial (0 rows)            │
+  │    ✓ next_num_fact = état initial (1)               │
+  │    ✓ next_num_bord = état initial (215)             │
+  │    ✓ Aucune autre donnée modifiée                   │
+  │                                                     │
+  │  STOP ici. Ne pas continuer sans approbation.       │
+  │                                                     │
+  └─────────────────────────────────────────────────────┘
+
+  BASELINE POUR ROLLBACK:
+    facture rows      = 0 → 1
+    detail_fact rows  = 0 → 1
+    bordereau rows    = 0 → 0
+    signature rows    = 0 → 0
+    next_num_fact     = 1 → 1
+    next_num_bord     = 215 → 215
