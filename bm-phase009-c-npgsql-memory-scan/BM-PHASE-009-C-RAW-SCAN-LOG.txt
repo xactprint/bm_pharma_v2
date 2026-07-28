@@ -1,0 +1,44 @@
+BM-PHASE-009-C — Raw Scan Log
+==============================
+
+Date: 2026-07-28
+Tool: PowerShell Add-Type C# MemoryScanner
+Process: CHIFA_OFFICINE.exe (PID 16376)
+
+Scan A — Baseline
+-----------------
+Timestamp: Before opening any form
+Scanned: 1228 regions (~248 MB)
+Total findings: 373,760
+File: raw_scan_a_baseline.txt (66,932,438 bytes)
+Notes: Process at idle, no user interaction beyond normal startup
+
+Scan B — After FBordereau (Visualiser Bordereau)
+------------------------------------------------
+Timestamp: After opening Visualiser Bordereau and clicking Rechercher
+Scanned: 1191 regions (~248 MB)
+Total findings: 361,707
+File: raw_scan_b_after_open.txt (64,754,850 bytes)
+Notes: Form opened, Rechercher button clicked, NullReferenceException observed
+
+Comparison Results
+------------------
+Method: Python script extracting SQL-related content (SELECT/FROM/WHERE/JOIN/ORDER BY/GROUP BY/LIMIT) from both files, deduplicating, and comparing sets.
+Result: ZERO new SQL strings in Scan B not already in Scan A.
+
+Npgsql Analysis
+---------------
+Npgsql.dll version: 2.0.14.3
+NpgsqlEventLog IL analysis: CommandText NOT logged — only method names, property names, static resource strings.
+Conclusion: Enabling Npgsql Debug logging would NOT capture SQL.
+
+PostgreSQL Logging
+------------------
+Attempted: log_min_duration_statement=0
+Result: PostgreSQL server crash (0xC0000142) — config change blocked.
+
+Raw Data File Format
+--------------------
+Each line: [U|A] 0xHEXADDRESS 'first_20_chars' -> full_content
+U = UTF-16 match
+A = ANSI match
