@@ -1,0 +1,161 @@
+==========================================================
+  BM-PHASE-008-B — TEST DE VISIBILITÉ TST003
+  Date: 2026-07-28T16:28:42.6010137Z
+  Type: INSERT direct Npgsql (pas EF Core)
+==========================================================
+  Connected: 9.3.4 | pharm@CHIFA_OFFICINE
+
+=== 008-B-1 — SNAPSHOT BASELINE ===
+  facture      = 0  (attendu: 0)
+  detail_fact  = 0  (attendu: 0)
+  bordereau    = 0  (attendu: 0)
+  signature    = 0  (attendu: 0)
+  next_num_fact = 1  (attendu: 1)
+  next_num_bord = 215  (attendu: 215)
+  ln           = 7412276
+  medicament   = 7596
+  TST003 facture existe: 0  (attendu: 0)
+  TST003 detail_fact existe: 0  (attendu: 0)
+  bordereau 215 existe: 0  (attendu: 0)
+
+=== 008-B-2/4/5/6 — INSERT TST003 ===
+  INSERT INTO bordereau(num_bord='215', ...)
+  → 1 ligne(s) insérée(s)
+
+  INSERT INTO facture(num_fact='TST003', ...)
+  → 1 ligne(s) insérée(s)
+
+  INSERT INTO detail_fact(num_fact='TST003', num_enr='00010', ...)
+  → 1 ligne(s) insérée(s)
+
+  ✅ TRANSACTION COMMITTED
+
+=== 008-B-7 — VÉRIFICATION SQL POST-ÉCRITURE ===
+  facture      = 1
+  detail_fact  = 1
+  bordereau    = 1
+  signature    = 0
+  next_num_fact = 1
+  next_num_bord = 215
+
+  --- Facture TST003 ---
+    num_fact             = TST003
+    date_fact            = 28/07/2026 18:28:43
+    etat                 = 0
+    num_bord             = 215
+    mont_off             = 120.00
+    mont_as              = 84.00
+    mont_fact            = 120.00
+    num_assure           = TST99999
+    rang_ad              = 1
+    code_centre          = 11600
+    tp                   = 1
+    taux                 = 3
+    code_affect          = 01
+    conv                 = 1
+    type_consult         = 01
+    prescripteur         = BM PHARMA
+    date_soin            = 28/07/2026 00:00:00
+    risque               = 0
+    statut_fact          = 1
+    verifcms             = 0
+    type_signature       = 0
+    verif_fact           = 0
+    mont_maj_fae         = 0.00
+    mont_maj             = 0.00
+    type_maj             = 0
+    code_centre_as       = 
+    code_sp              = 
+    type_ord             = 
+    motif_med            = 
+    id_user              = 
+    signature            = 
+    num_serie            = 
+    date_envoi_sms       = 
+    date_fin_droit       = 
+    date_fin_droit_benef = 
+    version              = 2.0.0
+    code_covid           = 
+    fact_xml             = 
+    nat_remb             = 0
+    mont_mut             = 0.00
+    date_fin_mut         = 01/01/1900 00:00:00
+    code_mut             = 
+    date_synchro         = 01/01/1900 00:00:00
+    adresse_ip           = 
+    nom_pc               = 
+    obs                  = 
+    ref_cm               = 
+    num_serie_ps         = -1
+    version_carte        = 1
+    echifa               = False
+    id_fact_echifa       = -1
+    e_ord                = False
+    id_e_ord             = -1
+
+  --- Detail_fact TST003 ---
+    num_fact             = TST003
+    num_lot              = LOT003
+    num_enr              = 00010
+    qte                  = 2
+    ppa                  = 60.00
+    mont                 = 120.00
+    mont_as              = 84.00
+    mont_pharm           = 36.00
+    maj_local            = 0.00
+    num_enr_prescrit     = 00010
+    maj_sub              = 0
+    duree_trait          = 30
+    tarif_ref            = 60.00
+    posologie            = 1/day
+    remboursable         = True
+    local                = False
+    inf_tr               = True
+    applic_tr            = True
+    medic                = True
+    ts                   = False
+
+  --- Bordereau 215 ---
+    id_bord              = 501
+    num_bord             = 215
+    code_centre          = 11600
+    etat                 = O
+    id_user_cloture      = 
+    poste_cloture        = 
+    mont_vir             = 0.00
+    duplicata            = False
+    date_cloture         = 01/01/1900 00:00:00
+    date_ouverture       = 28/07/2026 18:28:43
+    date_depot_ftp       = 01/01/1900 00:00:00
+
+  Orphelins facture→bordereau: 0 (attendu: 0)
+  Orphelins detail_fact→facture: 0 (attendu: 0)
+
+  --- JOIN facture × bordereau (simule detail_bord) ---
+    f.num_fact=TST003 f.num_bord=215 b.num_bord=215 → Jointure OK
+
+  --- JOIN facture × detail_fact × bordereau (simule detail_bord complet) ---
+    num_fact=TST003 num_bord=215 num_enr=00010 qte=2 mont=120.00 remb=True ts=False
+
+=== RÉSUMÉ ===
+  ┌──────────────────────────┬──────────┬──────────┐
+  │ Table                    │ Avant    │ Après    │
+  ├──────────────────────────┼──────────┼──────────┤
+  │ facture                  │ 0        │ 1        │
+  │ detail_fact              │ 0        │ 1        │
+  │ bordereau                │ 0        │ 1        │
+  │ signature                │ 0        │ 0        │
+  │ next_num_fact            │ 1        │ 1        │
+  │ next_num_bord            │ 215      │ 215      │
+  └──────────────────────────┴──────────┴──────────┘
+
+  ═══════════════════════════════════════════════════════════
+  ║  DONNÉES PRÊTES POUR OBSERVATION CHIFA-OFFICINE       ║
+  ║                                                        ║
+  ║  TST003 → facture=1, detail_fact=1, bordereau=1       ║
+  ║  Compteurs inchangés, signature=0                      ║
+  ║  Jointure facture×bordereau×detail_fact: OK            ║
+  ║                                                        ║
+  ║  ⛔ STOP — Ouvrir CHIFA-OFFICINE maintenant             ║
+  ║  NE PAS signer, cloturer ou transmettre                ║
+  ═══════════════════════════════════════════════════════════
