@@ -2,9 +2,6 @@
 
 **Version**: 1.0
 **Date**: 2026-07-25
-**Status**: SUPERSEDED (v2.0: `bm-phase010-architecture-definition/BM-PHASE-010-TRANSACTION-STRATEGY.md`)
-**Source of Truth**: v2.0 in Phase 010 directory
-**v2.0 Changes from v1.0**: Write+rollback proven against real PG (TST001/TST002). Facture + detail_fact confirmed. Bordereau removed from BM scope. Atomic counters (UPDATE...RETURNING) confirmed. All rollbacks verified to exact baseline.
 
 ## Principle
 

@@ -2,9 +2,6 @@
 
 **Version**: 1.0
 **Date**: 2026-07-25
-**Status**: SUPERSEDED (v2.0: `bm-phase010-architecture-definition/BM-PHASE-010-INVOICE-CONTRACT.md`)
-**Source of Truth**: v2.0 in Phase 010 directory
-**v2.0 Changes from v1.0**: Write order confirmed (facture first, then detail_fact), DateTimeKind.Unspecified, HasColumnType for xml/timestamp/date, 2 SaveChangesAsync, invoice visible in CHIFA UI confirmed
 
 ## Purpose
 

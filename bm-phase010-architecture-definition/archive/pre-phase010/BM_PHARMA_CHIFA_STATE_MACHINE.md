@@ -1,11 +1,5 @@
 # BM PHARMA - CHIFA STATE MACHINE
 
-**Version**: 1.0 (Archived)
-**Date**: 2026-07-25
-**Status**: SUPERSEDED (v2.0: `bm-phase010-architecture-definition/BM-PHASE-010-STATE-MACHINE.md`)
-**Source of Truth**: v2.0 in Phase 010 directory
-**v2.0 Changes from v1.0**: Invoice lifecycle aligned with real PG columns (facture.etat, facture.date_facture). Bordereau lifecycle reduced to monitoring only (Option D). No BM-side state transitions for signing/cloture/transmission.
-
 ## Invoice States
 
 ```

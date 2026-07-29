@@ -2,9 +2,6 @@
 
 **Version**: 1.0
 **Date**: 2026-07-25
-**Status**: SUPERSEDED
-**Source of Truth**: `bm-phase010-architecture-definition/BM-PHASE-010-ARCHITECTURE-OVERVIEW.md`
-**v2.0 Changes from v1.0**: Complete rewrite with Option D (Hybrid), certitude matrix, and 48-table schema discovery evidence
 
 ## Architectural Principle
 

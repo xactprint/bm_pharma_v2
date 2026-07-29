@@ -2,9 +2,6 @@
 
 **Version**: 1.0
 **Date**: 2026-07-25
-**Status**: SUPERSEDED (v2.0: `bm-phase010-architecture-definition/BM-PHASE-010-TEST-PLAN.md`)
-**Source of Truth**: v2.0 in Phase 010 directory
-**v2.0 Changes from v1.0**: 509 tests passing (baseline). TST001/TST002 write+rollback executed. TST003 inconclusive (bordereau visibility). All writes rolled back to exact baseline. ReadOnly tests pass.
 
 ## Test Categories
 
