@@ -10,29 +10,22 @@ namespace BMPharma.UI.ViewModels;
 
 public partial class ChifaInvoicePreparationViewModel : ViewModelBase
 {
-    private readonly IChifaInvoiceWorkflowService _workflowService;
-    private readonly IChifaIntegrationService _integrationService;
-    private readonly IChifaTokenService _tokenService;
-    private readonly IChifaSigningService _signingService;
+    private readonly IChifaIntegrationFacade _facade;
     private readonly ChifaIntegrationModeProvider _modeProvider;
     private readonly ILogger<ChifaInvoicePreparationViewModel> _logger;
 
-    // --- Invoice Identity ---
     [ObservableProperty] private string _invoiceNumber = string.Empty;
     [ObservableProperty] private string _insuranceNumber = string.Empty;
     [ObservableProperty] private int _centreCode = 11600;
     [ObservableProperty] private DateTime _careDate = DateTime.Today;
     [ObservableProperty] private string _patientName = string.Empty;
 
-    // --- Invoice Lines ---
     public ObservableCollection<InvoiceLineViewModel> InvoiceLines { get; } = new();
 
-    // --- Computed Amounts ---
     [ObservableProperty] private decimal _totalAmount;
     [ObservableProperty] private decimal _reimbursementAmount;
     [ObservableProperty] private decimal _patientShare;
 
-    // --- Status ---
     [ObservableProperty] private string _workflowStep = "En attente";
     [ObservableProperty] private string _workflowStepColor = "#757575";
     [ObservableProperty] private string _validationStatus = "";
@@ -42,48 +35,36 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
     [ObservableProperty] private string _connectionStatus = "Vérification...";
     [ObservableProperty] private string _connectionStatusColor = "#FF9800";
 
-    // --- Mode ---
     [ObservableProperty] private string _integrationMode = "ReadOnly";
     [ObservableProperty] private bool _isReadOnly = true;
     [ObservableProperty] private string _modeNotice = "";
 
-    // --- Action Required ---
     [ObservableProperty] private bool _hasRequiredAction;
     [ObservableProperty] private string _requiredActionTitle = "";
     [ObservableProperty] private string _requiredActionDescription = "";
     [ObservableProperty] private string _requiredActionApplication = "";
     [ObservableProperty] private string _requiredActionBmPharmaWaits = "";
 
-    // --- Errors & Messages ---
     [ObservableProperty] private bool _hasErrors;
     [ObservableProperty] private ObservableCollection<WorkflowErrorViewModel> _errors = new();
     [ObservableProperty] private string _statusMessage = "Prêt";
     [ObservableProperty] private bool _isProcessing;
 
-    // --- Workflow State ---
     [ObservableProperty] private ChifaWorkflowState _currentState = ChifaWorkflowState.Draft;
     [ObservableProperty] private string _currentStateDescription = "Brouillon";
     [ObservableProperty] private string _lastCorrelationId = "";
 
-    // --- Audit ---
     public ObservableCollection<WorkflowAuditViewModel> AuditEntries { get; } = new();
 
-    // --- Computed ---
     [ObservableProperty] private string _numFactDisplay = "-";
     [ObservableProperty] private string _nextBordereauNumber = "-";
 
     public ChifaInvoicePreparationViewModel(
-        IChifaInvoiceWorkflowService workflowService,
-        IChifaIntegrationService integrationService,
-        IChifaTokenService tokenService,
-        IChifaSigningService signingService,
+        IChifaIntegrationFacade facade,
         ChifaIntegrationModeProvider modeProvider,
         ILogger<ChifaInvoicePreparationViewModel> logger)
     {
-        _workflowService = workflowService;
-        _integrationService = integrationService;
-        _tokenService = tokenService;
-        _signingService = signingService;
+        _facade = facade;
         _modeProvider = modeProvider;
         _logger = logger;
 
@@ -98,8 +79,6 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
         InvoiceLines.CollectionChanged += (_, _) => RecalculateAmounts();
         _ = LoadStatusAsync();
     }
-
-    // --- Commands ---
 
     [RelayCommand]
     private void AddLine()
@@ -137,17 +116,17 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
             Errors.Clear();
 
             var request = BuildChifaRequest();
-            var result = await _workflowService.ValidateOnlyAsync(request);
+            var result = await _facade.ValidateInvoiceAsync(request);
 
-            LastCorrelationId = result.CorrelationId;
+            LastCorrelationId = result.Data?.CorrelationId ?? "";
 
             if (result.IsSuccess)
             {
                 ValidationStatus = "Validation réussie";
                 ValidationStatusColor = "#4CAF50";
-                TotalAmount = result.ComputedMontFact;
-                ReimbursementAmount = result.ComputedMontAs;
-                PatientShare = result.ComputedMontMut;
+                TotalAmount = result.Data?.ComputedMontFact ?? 0;
+                ReimbursementAmount = result.Data?.ComputedMontAs ?? 0;
+                PatientShare = result.Data?.ComputedMontMut ?? 0;
                 WorkflowStep = "Validé — Prêt pour préparation";
                 WorkflowStepColor = "#4CAF50";
                 CurrentState = ChifaWorkflowState.Validated;
@@ -156,9 +135,10 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
             }
             else
             {
-                ValidationStatus = $"Échec — {result.ValidationErrors.Count} erreur(s)";
+                var errors = result.Data?.ValidationErrors ?? new List<ChifaWorkflowValidationError>();
+                ValidationStatus = $"Échec — {errors.Count} erreur(s)";
                 ValidationStatusColor = "#F44336";
-                foreach (var error in result.ValidationErrors)
+                foreach (var error in errors)
                 {
                     Errors.Add(new WorkflowErrorViewModel
                     {
@@ -170,7 +150,7 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
                 HasErrors = true;
                 WorkflowStep = "Échec de validation";
                 WorkflowStepColor = "#F44336";
-                StatusMessage = $"Validation échouée: {result.ValidationErrors.Count} erreur(s)";
+                StatusMessage = $"Validation échouée: {errors.Count} erreur(s)";
             }
         }
         catch (Exception ex)
@@ -202,44 +182,44 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
             Errors.Clear();
 
             var request = BuildChifaRequest();
-            var result = await _workflowService.ExecuteFullWorkflowAsync(request);
+            var result = await _facade.ExecuteFullWorkflowAsync(request);
 
-            LastCorrelationId = result.CorrelationId;
-            CurrentState = result.State;
-            CurrentStateDescription = GetStateDescription(result.State);
+            LastCorrelationId = result.Data?.CorrelationId ?? "";
+            CurrentState = result.Data?.State ?? ChifaWorkflowState.Draft;
+            CurrentStateDescription = GetStateDescription(CurrentState);
 
             if (result.IsSuccess)
             {
-                WorkflowStep = result.Step;
+                WorkflowStep = result.Data?.Step ?? "COMPLETED";
                 WorkflowStepColor = "#4CAF50";
-                ChifaStatus = result.State == ChifaWorkflowState.VisibleInChifa ? "Visible" : result.Step;
+                ChifaStatus = result.Data?.State == ChifaWorkflowState.PreparedForChifa ? "Préparé" : result.Data?.Step ?? "";
                 ChifaStatusColor = "#4CAF50";
-                NumFactDisplay = result.ChifaNumFact ?? InvoiceNumber;
+                NumFactDisplay = result.Data?.ChifaNumFact ?? InvoiceNumber;
 
-                if (!string.IsNullOrEmpty(result.SimulationMessage))
+                if (!string.IsNullOrEmpty(result.Data?.SimulationMessage))
                 {
-                    StatusMessage = result.SimulationMessage;
+                    StatusMessage = result.Data.SimulationMessage;
                     WorkflowStepColor = "#FF9800";
                     ChifaStatus = "Simulation";
                     ChifaStatusColor = "#FF9800";
                 }
                 else
                 {
-                    StatusMessage = $"Étape {result.Step} complétée en {result.DurationMs}ms";
+                    StatusMessage = $"Étape {result.Data?.Step} complétée en {result.DurationMs}ms";
                 }
 
-                if (result.RequiresAction)
+                if (result.Data?.RequiresAction == true)
                 {
                     HasRequiredAction = true;
-                    RequiredActionTitle = result.ActionDescription ?? "";
-                    RequiredActionDescription = result.ActionBmPharmaWaits ?? "";
-                    RequiredActionApplication = result.ActionApplication ?? "CHIFA-OFFICINE";
-                    RequiredActionBmPharmaWaits = result.ActionBmPharmaWaits ?? "";
+                    RequiredActionTitle = result.Data.ActionDescription ?? "";
+                    RequiredActionDescription = result.Data.ActionBmPharmaWaits ?? "";
+                    RequiredActionApplication = result.Data.ActionApplication ?? "CHIFA-OFFICINE";
+                    RequiredActionBmPharmaWaits = result.Data.ActionBmPharmaWaits ?? "";
                 }
             }
             else
             {
-                WorkflowStep = result.Step;
+                WorkflowStep = result.Data?.Step ?? "FAILED";
                 WorkflowStepColor = "#F44336";
                 HasErrors = true;
 
@@ -247,13 +227,13 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
                 {
                     Errors.Add(new WorkflowErrorViewModel
                     {
-                        Code = result.Step,
+                        Code = result.Data?.Step ?? "UNKNOWN",
                         Field = "workflow",
                         Message = result.ErrorMessage
                     });
                 }
 
-                StatusMessage = $"Échec: {result.Step}";
+                StatusMessage = $"Échec: {result.Data?.Step ?? "UNKNOWN"}";
             }
 
             RefreshAuditLog();
@@ -307,19 +287,16 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
         NumFactDisplay = "-";
     }
 
-    // --- Private Methods ---
-
     private async Task LoadStatusAsync()
     {
         try
         {
             IsLoading = true;
-            var health = await _integrationService.GetHealthStatusAsync();
+            var overview = await _facade.GetDashboardOverviewAsync();
+            var health = await _facade.GetHealthStatusAsync();
+
             ConnectionStatus = health.IsOnline ? "Connecté" : "Déconnecté";
             ConnectionStatusColor = health.IsOnline ? "#4CAF50" : "#F44336";
-
-            var tokenPresent = await _tokenService.IsTokenPresentAsync();
-            var signingStatus = await _signingService.GetSigningStatusAsync("_global");
 
             StatusMessage = $"Prêt — Dernière vérification: {DateTime.Now:HH:mm:ss}";
         }
@@ -361,10 +338,11 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
         PatientShare = Math.Round(TotalAmount - ReimbursementAmount, 2);
     }
 
-    private void RefreshAuditLog()
+    private async void RefreshAuditLog()
     {
         AuditEntries.Clear();
-        foreach (var entry in _workflowService.GetAuditLog().Take(20))
+        var entries = await _facade.GetWorkflowAuditLogAsync(20);
+        foreach (var entry in entries)
         {
             AuditEntries.Add(new WorkflowAuditViewModel
             {

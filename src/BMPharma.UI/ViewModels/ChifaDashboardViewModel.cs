@@ -8,22 +8,16 @@ namespace BMPharma.UI.ViewModels;
 
 public partial class ChifaDashboardViewModel : ViewModelBase
 {
-    private readonly IChifaIntegrationService _integrationService;
-    private readonly IChifaTokenService _tokenService;
-    private readonly IChifaSigningService _signingService;
+    private readonly IChifaIntegrationFacade _facade;
     private readonly ChifaIntegrationModeProvider _modeProvider;
     private readonly ILogger<ChifaDashboardViewModel> _logger;
 
     public ChifaDashboardViewModel(
-        IChifaIntegrationService integrationService,
-        IChifaTokenService tokenService,
-        IChifaSigningService signingService,
+        IChifaIntegrationFacade facade,
         ChifaIntegrationModeProvider modeProvider,
         ILogger<ChifaDashboardViewModel> logger)
     {
-        _integrationService = integrationService;
-        _tokenService = tokenService;
-        _signingService = signingService;
+        _facade = facade;
         _modeProvider = modeProvider;
         _logger = logger;
 
@@ -34,52 +28,41 @@ public partial class ChifaDashboardViewModel : ViewModelBase
         _ = LoadStatusAsync();
     }
 
-    // --- Connection ---
     [ObservableProperty] private string _connectionStatus = "Vérification...";
     [ObservableProperty] private string _connectionStatusColor = "#FF9800";
     [ObservableProperty] private bool _isPostgresConnected;
 
-    // --- Mode ---
     [ObservableProperty] private string _integrationMode = "ReadOnly";
     [ObservableProperty] private bool _isReadOnly = true;
     [ObservableProperty] private string _modeDescription = "";
 
-    // --- CHIFA-OFFICINE ---
     [ObservableProperty] private string _chifaStatus = "Vérification...";
     [ObservableProperty] private string _chifaStatusColor = "#FF9800";
     [ObservableProperty] private bool _isChifaAvailable;
 
-    // --- Token ---
     [ObservableProperty] private string _tokenStatus = "Vérification...";
     [ObservableProperty] private string _tokenStatusColor = "#FF9800";
     [ObservableProperty] private bool _isTokenPresent;
 
-    // --- Signature ---
     [ObservableProperty] private string _signingStatus = "Non vérifié";
     [ObservableProperty] private string _signingStatusColor = "#757575";
 
-    // --- Business counts ---
     [ObservableProperty] private int _preparedInvoiceCount;
     [ObservableProperty] private int _synchronizedInvoiceCount;
     [ObservableProperty] private int _bordereauPreparedCount;
     [ObservableProperty] private string _nextBordereauNumber = "-";
 
-    // --- CNAS ---
     [ObservableProperty] private string _cnasTransmissionStatus = "En attente";
     [ObservableProperty] private string _cnasTransmissionColor = "#757575";
 
-    // --- Audit ---
     [ObservableProperty] private string _lastOperation = "Aucune";
     [ObservableProperty] private string _lastOperationTime = "-";
 
-    // --- Error ---
     [ObservableProperty] private string _lastError = "";
     [ObservableProperty] private bool _hasError;
 
-    // --- Loading ---
     [ObservableProperty] private string _statusMessage = "Chargement en cours...";
 
-    // --- Workflow Steps (business-oriented) ---
     [ObservableProperty] private string _workflowStep1Status = "En attente";
     [ObservableProperty] private string _workflowStep1Color = "#757575";
     [ObservableProperty] private string _workflowStep2Status = "En attente";
@@ -97,7 +80,6 @@ public partial class ChifaDashboardViewModel : ViewModelBase
     [ObservableProperty] private string _workflowStep8Status = "En attente";
     [ObservableProperty] private string _workflowStep8Color = "#757575";
 
-    // --- Required Action ---
     [ObservableProperty] private bool _hasRequiredAction;
     [ObservableProperty] private string _requiredActionTitle = "";
     [ObservableProperty] private string _requiredActionDescription = "";
@@ -159,8 +141,8 @@ public partial class ChifaDashboardViewModel : ViewModelBase
     {
         try
         {
-            IsPostgresConnected = await _integrationService.IsChifaAvailableAsync();
-            var health = await _integrationService.GetHealthStatusAsync();
+            IsPostgresConnected = await _facade.IsAvailableAsync();
+            var health = await _facade.GetHealthStatusAsync();
 
             if (health.IsOnline && health.IsDatabaseConnected)
             {
@@ -208,19 +190,19 @@ public partial class ChifaDashboardViewModel : ViewModelBase
     {
         try
         {
-            IsTokenPresent = await _tokenService.IsTokenPresentAsync();
-            var tokenInfo = await _tokenService.GetTokenInfoAsync();
+            var (isPresent, label, isValid) = await _facade.GetTokenStatusAsync();
 
-            if (tokenInfo != null && tokenInfo.IsValid)
+            if (isPresent && isValid)
             {
-                TokenStatus = $"Présent ({tokenInfo.Label})";
+                TokenStatus = $"Présent ({label})";
                 TokenStatusColor = "#4CAF50";
                 IsTokenPresent = true;
             }
-            else if (IsTokenPresent)
+            else if (isPresent)
             {
                 TokenStatus = "Présent (expiry inconnue)";
                 TokenStatusColor = "#FF9800";
+                IsTokenPresent = true;
             }
             else
             {
@@ -242,7 +224,7 @@ public partial class ChifaDashboardViewModel : ViewModelBase
     {
         try
         {
-            var status = await _signingService.GetSigningStatusAsync("_global");
+            var status = await _facade.GetSigningStatusAsync();
             SigningStatus = status switch
             {
                 ChifaSigningStatus.NotSigned => "Non signé",
@@ -272,35 +254,27 @@ public partial class ChifaDashboardViewModel : ViewModelBase
 
     private void UpdateWorkflowSteps()
     {
-        // Step 1: Vente (always ready in BM Pharma)
         WorkflowStep1Status = IsPostgresConnected ? "Prêt" : "En attente connexion";
         WorkflowStep1Color = IsPostgresConnected ? "#4CAF50" : "#757575";
 
-        // Step 2: Préparation CHIFA
         WorkflowStep2Status = PreparedInvoiceCount > 0 ? $"{PreparedInvoiceCount} facture(s) prête(s)" : "En attente";
         WorkflowStep2Color = PreparedInvoiceCount > 0 ? "#4CAF50" : "#757575";
 
-        // Step 3: Validation
         WorkflowStep3Status = IsPostgresConnected ? "Prêt" : "Non disponible";
         WorkflowStep3Color = IsPostgresConnected ? "#4CAF50" : "#F44336";
 
-        // Step 4: Synchronisation
         WorkflowStep4Status = SynchronizedInvoiceCount > 0 ? $"{SynchronizedInvoiceCount} synchronisée(s)" : "En attente";
         WorkflowStep4Color = SynchronizedInvoiceCount > 0 ? "#4CAF50" : "#757575";
 
-        // Step 5: Action pharmacien
         WorkflowStep5Status = HasRequiredAction ? "Action requise" : "En attente";
         WorkflowStep5Color = HasRequiredAction ? "#FF9800" : "#757575";
 
-        // Step 6: Signature CHIFA
         WorkflowStep6Status = SigningStatus;
         WorkflowStep6Color = SigningStatusColor;
 
-        // Step 7: Clôture bordereau
         WorkflowStep7Status = BordereauPreparedCount > 0 ? $"{BordereauPreparedCount} bordereau(x)" : "En attente";
         WorkflowStep7Color = BordereauPreparedCount > 0 ? "#4CAF50" : "#757575";
 
-        // Step 8: Transmission CNAS
         WorkflowStep8Status = CnasTransmissionStatus;
         WorkflowStep8Color = CnasTransmissionColor;
     }

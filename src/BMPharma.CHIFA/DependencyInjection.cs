@@ -33,6 +33,17 @@ public static class DependencyInjection
         services.AddScoped<IChifaInvoiceWorkflowService, ChifaInvoiceWorkflowService>();
         services.AddScoped<IBordereauStatusService, BordereauStatusService>();
 
+        services.AddSingleton<CorrelationContext>();
+        services.AddSingleton<ChifaCircuitBreaker>();
+        services.AddSingleton<ChifaMetricsService>();
+        services.AddScoped<ChifaHealthCheckService>();
+        services.AddScoped<StatusEngine>();
+        services.AddScoped<InvoiceSynchronizer>();
+        services.AddScoped<BordereauSynchronizer>();
+        services.AddScoped<StatusSynchronizer>();
+        services.AddScoped<ChifaMonitoringService>();
+        services.AddScoped<IChifaIntegrationFacade, ChifaIntegrationFacade>();
+
         var usePostgres = !modeProvider.IsReadOnly;
 
         if (usePostgres)
@@ -96,6 +107,17 @@ public static class DependencyInjection
         services.AddScoped<IChifaInvoiceWorkflowService, ChifaInvoiceWorkflowService>();
         services.AddScoped<IBordereauStatusService, BordereauStatusService>();
         services.AddScoped<IChifaAuditService, ChifaAuditService>();
+
+        services.AddSingleton<CorrelationContext>();
+        services.AddSingleton<ChifaCircuitBreaker>();
+        services.AddSingleton<ChifaMetricsService>();
+        services.AddScoped<ChifaHealthCheckService>();
+        services.AddScoped<StatusEngine>();
+        services.AddScoped<InvoiceSynchronizer>();
+        services.AddScoped<BordereauSynchronizer>();
+        services.AddScoped<StatusSynchronizer>();
+        services.AddScoped<ChifaMonitoringService>();
+        services.AddScoped<IChifaIntegrationFacade, ChifaIntegrationFacade>();
 
         if (modeProvider.IsReadOnly)
         {

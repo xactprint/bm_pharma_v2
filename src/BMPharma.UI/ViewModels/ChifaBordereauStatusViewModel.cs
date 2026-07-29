@@ -10,30 +10,23 @@ namespace BMPharma.UI.ViewModels;
 
 public partial class ChifaBordereauStatusViewModel : ViewModelBase
 {
-    private readonly IBordereauStatusService _bordereauService;
+    private readonly IChifaIntegrationFacade _facade;
     private readonly ChifaIntegrationModeProvider _modeProvider;
-    private readonly IChifaTokenService _tokenService;
-    private readonly IChifaIntegrationService _integrationService;
     private readonly ILogger<ChifaBordereauStatusViewModel> _logger;
 
-    // --- Mode ---
     [ObservableProperty] private string _integrationMode = "ReadOnly";
     [ObservableProperty] private string _modeNotice = "";
 
-    // --- Connection ---
     [ObservableProperty] private string _connectionStatus = "Vérification...";
     [ObservableProperty] private string _connectionStatusColor = "#FF9800";
 
-    // --- Token ---
     [ObservableProperty] private string _tokenStatus = "Vérification...";
     [ObservableProperty] private string _tokenStatusColor = "#FF9800";
 
-    // --- Bordereau List ---
     public ObservableCollection<BordereauWorkflowSummary> Bordereaux { get; } = new();
 
     [ObservableProperty] private BordereauWorkflowSummary? _selectedBordereau;
 
-    // --- Computed Properties for Selected Bordereau ---
     public string NumBord => SelectedBordereau?.NumBord ?? "-";
     public string CurrentState => SelectedBordereau?.State.ToString() ?? "-";
     public int InvoiceCount => SelectedBordereau?.InvoiceCount ?? 0;
@@ -49,33 +42,23 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
         ? "MODE LECTURE SEULE — Cette opération est simulée. Aucune donnée CHIFA n'est modifiée."
         : "Mode actif — Les opérations seront exécutées sur la base CHIFA.";
 
-    // --- Audit Log ---
     public ObservableCollection<BordereauWorkflowAuditEntry> AuditLog { get; } = new();
-
-    // --- Validation Errors ---
     public ObservableCollection<BordereauWorkflowValidationError> ValidationErrors { get; } = new();
 
-    // --- Status ---
     [ObservableProperty] private string _statusMessage = "Prêt";
     [ObservableProperty] private bool _isProcessing;
 
-    // --- Errors ---
     [ObservableProperty] private bool _hasErrors;
 
-    // --- Alerts Count ---
     [ObservableProperty] private int _alertsCount;
 
     public ChifaBordereauStatusViewModel(
-        IBordereauStatusService bordereauService,
+        IChifaIntegrationFacade facade,
         ChifaIntegrationModeProvider modeProvider,
-        IChifaTokenService tokenService,
-        IChifaIntegrationService integrationService,
         ILogger<ChifaBordereauStatusViewModel> logger)
     {
-        _bordereauService = bordereauService;
+        _facade = facade;
         _modeProvider = modeProvider;
-        _tokenService = tokenService;
-        _integrationService = integrationService;
         _logger = logger;
 
         Title = "Suivi des bordereaux CHIFA";
@@ -100,8 +83,6 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
         OnPropertyChanged(nameof(ActionApplication));
         OnPropertyChanged(nameof(ActionBmPharmaWaits));
     }
-
-    // --- Commands ---
 
     [RelayCommand]
     private async Task RefreshBordereauxAsync()
@@ -139,21 +120,24 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .ToList();
 
-            var result = await _bordereauService.CreateBordereauAsync(numBord, codeCentre, invoiceNumbers);
+            var result = await _facade.CreateBordereauAsync(numBord, codeCentre, invoiceNumbers);
 
             if (result.IsSuccess)
             {
-                StatusMessage = !string.IsNullOrEmpty(result.SimulationMessage)
-                    ? result.SimulationMessage
+                StatusMessage = !string.IsNullOrEmpty(result.Data?.SimulationMessage)
+                    ? result.Data.SimulationMessage
                     : $"Bordereau {numBord} créé avec {invoiceNumbers.Count} facture(s) en {result.DurationMs}ms";
             }
             else
             {
                 StatusMessage = $"Échec de création: {result.ErrorMessage}";
                 HasErrors = true;
-                foreach (var error in result.ValidationErrors)
+                if (result.Data?.ValidationErrors != null)
                 {
-                    ValidationErrors.Add(error);
+                    foreach (var error in result.Data.ValidationErrors)
+                    {
+                        ValidationErrors.Add(error);
+                    }
                 }
             }
 
@@ -186,21 +170,24 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
             HasErrors = false;
             ValidationErrors.Clear();
 
-            var result = await _bordereauService.ValidateBordereauAsync(SelectedBordereau.NumBord);
+            var result = await _facade.ValidateBordereauAsync(SelectedBordereau.NumBord);
 
             if (result.IsSuccess)
             {
-                StatusMessage = !string.IsNullOrEmpty(result.SimulationMessage)
-                    ? result.SimulationMessage
+                StatusMessage = !string.IsNullOrEmpty(result.Data?.SimulationMessage)
+                    ? result.Data.SimulationMessage
                     : $"Bordereau {SelectedBordereau.NumBord} validé en {result.DurationMs}ms";
             }
             else
             {
                 StatusMessage = $"Validation échouée: {result.ErrorMessage}";
                 HasErrors = true;
-                foreach (var error in result.ValidationErrors)
+                if (result.Data?.ValidationErrors != null)
                 {
-                    ValidationErrors.Add(error);
+                    foreach (var error in result.Data.ValidationErrors)
+                    {
+                        ValidationErrors.Add(error);
+                    }
                 }
             }
 
@@ -233,12 +220,12 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
             HasErrors = false;
             ValidationErrors.Clear();
 
-            var result = await _bordereauService.SignBordereauAsync(SelectedBordereau.NumBord);
+            var result = await _facade.SignBordereauAsync(SelectedBordereau.NumBord);
 
             if (result.IsSuccess)
             {
-                StatusMessage = !string.IsNullOrEmpty(result.SimulationMessage)
-                    ? result.SimulationMessage
+                StatusMessage = !string.IsNullOrEmpty(result.Data?.SimulationMessage)
+                    ? result.Data.SimulationMessage
                     : $"Bordereau {SelectedBordereau.NumBord} signé en {result.DurationMs}ms";
             }
             else
@@ -275,12 +262,12 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
             HasErrors = false;
             ValidationErrors.Clear();
 
-            var result = await _bordereauService.CloseBordereauAsync(SelectedBordereau.NumBord);
+            var result = await _facade.CloseBordereauAsync(SelectedBordereau.NumBord);
 
             if (result.IsSuccess)
             {
-                StatusMessage = !string.IsNullOrEmpty(result.SimulationMessage)
-                    ? result.SimulationMessage
+                StatusMessage = !string.IsNullOrEmpty(result.Data?.SimulationMessage)
+                    ? result.Data.SimulationMessage
                     : $"Bordereau {SelectedBordereau.NumBord} clôturé en {result.DurationMs}ms";
             }
             else
@@ -317,12 +304,12 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
             HasErrors = false;
             ValidationErrors.Clear();
 
-            var result = await _bordereauService.TransmitBordereauAsync(SelectedBordereau.NumBord);
+            var result = await _facade.TransmitBordereauAsync(SelectedBordereau.NumBord);
 
             if (result.IsSuccess)
             {
-                StatusMessage = !string.IsNullOrEmpty(result.SimulationMessage)
-                    ? result.SimulationMessage
+                StatusMessage = !string.IsNullOrEmpty(result.Data?.SimulationMessage)
+                    ? result.Data.SimulationMessage
                     : $"Bordereau {SelectedBordereau.NumBord} transmis en {result.DurationMs}ms";
             }
             else
@@ -349,7 +336,7 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
         try
         {
             AuditLog.Clear();
-            var entries = _bordereauService.GetAuditLog(SelectedBordereau?.NumBord);
+            var entries = _facade.GetBordereauAuditLogAsync(SelectedBordereau?.NumBord).Result;
             foreach (var entry in entries)
             {
                 AuditLog.Add(entry);
@@ -363,8 +350,6 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
         return Task.CompletedTask;
     }
 
-    // --- Private Methods ---
-
     private async Task LoadBordereauxAsync()
     {
         try
@@ -372,16 +357,16 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
             IsLoading = true;
             StatusMessage = "Chargement des bordereaux...";
 
-            var health = await _integrationService.GetHealthStatusAsync();
+            var health = await _facade.GetHealthStatusAsync();
             ConnectionStatus = health.IsOnline ? "Connecté" : "Déconnecté";
             ConnectionStatusColor = health.IsOnline ? "#4CAF50" : "#F44336";
 
-            var tokenPresent = await _tokenService.IsTokenPresentAsync();
-            TokenStatus = tokenPresent ? "Présent" : "Absent";
-            TokenStatusColor = tokenPresent ? "#4CAF50" : "#F44336";
+            var (isPresent, _, _) = await _facade.GetTokenStatusAsync();
+            TokenStatus = isPresent ? "Présent" : "Absent";
+            TokenStatusColor = isPresent ? "#4CAF50" : "#F44336";
 
             Bordereaux.Clear();
-            var summaries = _bordereauService.GetAllBordereaux();
+            var summaries = await _facade.GetAllBordereauxAsync();
             foreach (var summary in summaries)
             {
                 Bordereaux.Add(summary);
@@ -411,7 +396,7 @@ public partial class ChifaBordereauStatusViewModel : ViewModelBase
     private void LoadAuditLogInternal()
     {
         AuditLog.Clear();
-        var entries = _bordereauService.GetAuditLog(SelectedBordereau?.NumBord);
+        var entries = _facade.GetBordereauAuditLogAsync(SelectedBordereau?.NumBord).Result;
         foreach (var entry in entries.Take(50))
         {
             AuditLog.Add(entry);
