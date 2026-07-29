@@ -59,6 +59,15 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
     [ObservableProperty] private string _numFactDisplay = "-";
     [ObservableProperty] private string _nextBordereauNumber = "-";
 
+    [ObservableProperty] private bool _showPreview;
+    [ObservableProperty] private string _previewTitle = "";
+    [ObservableProperty] private string _previewLinesSummary = "";
+    [ObservableProperty] private string _previewValidationRules = "";
+    [ObservableProperty] private string _previewModeNotice = "";
+    [ObservableProperty] private string _previewTotal = "";
+    [ObservableProperty] private string _previewReimbursement = "";
+    [ObservableProperty] private string _previewPatientShare = "";
+
     public ChifaInvoicePreparationViewModel(
         IChifaIntegrationFacade facade,
         ChifaIntegrationModeProvider modeProvider,
@@ -106,6 +115,37 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void PreviewInvoice()
+    {
+        if (InvoiceLines.Count == 0)
+        {
+            StatusMessage = "Ajoutez au moins une ligne de facture.";
+            return;
+        }
+
+        ShowPreview = true;
+        PreviewTitle = $"Aperçu — Facture {InvoiceNumber}";
+        PreviewLinesSummary = $"{InvoiceLines.Count} ligne(s) de facture";
+        PreviewValidationRules = TotalAmount > 0
+            ? "✓ Montant valide"
+            : "⚠ Le montant total est nul";
+        PreviewModeNotice = IsReadOnly
+            ? "⚠ Mode lecture seule — Aucune écriture"
+            : "✓ Mode actif — Écritures autorisées";
+        PreviewTotal = $"{TotalAmount:N2} DA";
+        PreviewReimbursement = $"{ReimbursementAmount:N2} DA";
+        PreviewPatientShare = $"{PatientShare:N2} DA";
+        StatusMessage = "Aperçu affiché — Vérifiez avant de soumettre";
+    }
+
+    [RelayCommand]
+    private void HidePreview()
+    {
+        ShowPreview = false;
+        StatusMessage = "Aperçu masqué";
+    }
+
+    [RelayCommand]
     private async Task ValidateInvoiceAsync()
     {
         try
@@ -114,6 +154,14 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
             StatusMessage = "Validation en cours...";
             HasErrors = false;
             Errors.Clear();
+
+            if (IsReadOnly)
+            {
+                AddSimulatedError("READONLY", "system",
+                    "La validation est simulée en mode lecture seule.");
+                StatusMessage = "Validation simulée (mode lecture seule)";
+                return;
+            }
 
             var request = BuildChifaRequest();
             var result = await _facade.ValidateInvoiceAsync(request);
@@ -135,10 +183,10 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
             }
             else
             {
-                var errors = result.Data?.ValidationErrors ?? new List<ChifaWorkflowValidationError>();
-                ValidationStatus = $"Échec — {errors.Count} erreur(s)";
+                var errorList = result.Data?.ValidationErrors ?? new List<ChifaWorkflowValidationError>();
+                ValidationStatus = $"Échec — {errorList.Count} erreur(s)";
                 ValidationStatusColor = "#F44336";
-                foreach (var error in errors)
+                foreach (var error in errorList)
                 {
                     Errors.Add(new WorkflowErrorViewModel
                     {
@@ -150,19 +198,13 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
                 HasErrors = true;
                 WorkflowStep = "Échec de validation";
                 WorkflowStepColor = "#F44336";
-                StatusMessage = $"Validation échouée: {errors.Count} erreur(s)";
+                StatusMessage = $"Validation échouée: {errorList.Count} erreur(s)";
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during invoice validation");
-            HasErrors = true;
-            Errors.Add(new WorkflowErrorViewModel
-            {
-                Code = "EXCEPTION",
-                Field = "system",
-                Message = $"Erreur inattendue: {ex.Message}"
-            });
+            AddSimulatedError(ex.GetErrorCode(), "system", ex.ToUserMessage());
             StatusMessage = "Erreur lors de la validation";
         }
         finally
@@ -180,6 +222,15 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
             StatusMessage = "Préparation et soumission en cours...";
             HasErrors = false;
             Errors.Clear();
+
+            if (IsReadOnly)
+            {
+                AddSimulatedError("READONLY", "system",
+                    "La soumission est simulée en mode lecture seule.");
+                StatusMessage = "Soumission simulée (mode lecture seule)";
+                ShowPreview = false;
+                return;
+            }
 
             var request = BuildChifaRequest();
             var result = await _facade.ExecuteFullWorkflowAsync(request);
@@ -236,18 +287,13 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
                 StatusMessage = $"Échec: {result.Data?.Step ?? "UNKNOWN"}";
             }
 
+            ShowPreview = false;
             RefreshAuditLog();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during invoice preparation");
-            HasErrors = true;
-            Errors.Add(new WorkflowErrorViewModel
-            {
-                Code = "EXCEPTION",
-                Field = "system",
-                Message = $"Erreur inattendue: {ex.Message}"
-            });
+            AddSimulatedError(ex.GetErrorCode(), "system", ex.ToUserMessage());
             StatusMessage = "Erreur lors de la préparation";
         }
         finally
@@ -283,6 +329,7 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
         HasErrors = false;
         Errors.Clear();
         HasRequiredAction = false;
+        ShowPreview = false;
         StatusMessage = "Formulaire réinitialisé";
         NumFactDisplay = "-";
     }
@@ -356,6 +403,17 @@ public partial class ChifaInvoicePreparationViewModel : ViewModelBase
                 Details = entry.Details ?? ""
             });
         }
+    }
+
+    private void AddSimulatedError(string code, string field, string message)
+    {
+        HasErrors = true;
+        Errors.Add(new WorkflowErrorViewModel
+        {
+            Code = code,
+            Field = field,
+            Message = message
+        });
     }
 
     private static string GetStateDescription(ChifaWorkflowState state) => state switch

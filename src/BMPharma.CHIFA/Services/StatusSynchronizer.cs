@@ -90,4 +90,21 @@ public class StatusSynchronizer
             return new List<ChifaInvoiceStatusSnapshot>();
         }
     }
+
+    public async Task<int> CountInvoicesTodayAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var today = DateTime.Today;
+            return await _readContext.ChifaFactures
+                .AsNoTracking()
+                .CountAsync(f => f.DateFact >= today, ct)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Count today invoices failed");
+            return 0;
+        }
+    }
 }

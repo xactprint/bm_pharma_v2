@@ -432,15 +432,44 @@ public class ChifaIntegrationFacade : IChifaIntegrationFacade, IDisposable
         try
         {
             _correlation.GetOrCreate();
+            _monitoring.RecordOperation("GetDashboardOverview");
             var status = await _statusEngine.EvaluateAsync(ct).ConfigureAwait(false);
             var lastSync = await _monitoring.GetLastSyncResultAsync(ct).ConfigureAwait(false);
+
+            var invoicesTask = _statusSync.CountInvoicesTodayAsync(ct);
+            var bordereauxTask = GetAllBordereauxAsync(ct);
+
+            await Task.WhenAll(invoicesTask, bordereauxTask).ConfigureAwait(false);
+
+            var totalInvoicesToday = invoicesTask.Result;
+            var allBordereaux = bordereauxTask.Result;
+            var pendingBordereaux = allBordereaux.Count(b =>
+                b.State != BordereauWorkflowState.Transmitted &&
+                b.State != BordereauWorkflowState.Closed);
+
+            var (metricsTotal, metricsSuccess, metricsFailed, metricsAvgMs) = _monitoring.GetMetrics();
+            var cbState = _monitoring.GetCircuitState("ChifaIntegration");
 
             var overview = new DashboardOverview
             {
                 Status = status,
-                LastSync = lastSync,
+                TotalInvoicesToday = totalInvoicesToday,
+                PendingBordereaux = pendingBordereaux,
                 LastOperation = _monitoring.LastOperation,
-                Timestamp = DateTime.UtcNow
+                LastSync = lastSync,
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = _correlation.Current,
+                CircuitBreakerState = cbState.ToString(),
+                CircuitBreakerKey = "ChifaIntegration",
+                CircuitBreakerFailureCount = metricsFailed,
+                MetricsTotal = metricsTotal,
+                MetricsSuccess = metricsSuccess,
+                MetricsFailed = metricsFailed,
+                MetricsAvgMs = Math.Round(metricsAvgMs, 1),
+                LastSyncResult = lastSync?.Errors?.Count > 0
+                    ? $"{lastSync.InvoicesFound} fact., {lastSync.BordereauxFound} bord. — {lastSync.Errors.Count} erreur(s)"
+                    : $"{lastSync?.InvoicesFound ?? 0} fact., {lastSync?.BordereauxFound ?? 0} bord.",
+                LastSyncTime = lastSync?.Timestamp
             };
 
             return new FacadeResult<DashboardOverview>

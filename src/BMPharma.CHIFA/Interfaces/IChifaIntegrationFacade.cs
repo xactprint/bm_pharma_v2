@@ -31,6 +31,17 @@ public class DashboardOverview
     public string? LastOperation { get; set; }
     public ChifaSyncSummary? LastSync { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+    public string? CircuitBreakerState { get; set; }
+    public string? CircuitBreakerKey { get; set; }
+    public int CircuitBreakerFailureCount { get; set; }
+    public int MetricsTotal { get; set; }
+    public int MetricsSuccess { get; set; }
+    public int MetricsFailed { get; set; }
+    public double MetricsAvgMs { get; set; }
+    public string? CorrelationId { get; set; }
+    public string? LastSyncResult { get; set; }
+    public DateTime? LastSyncTime { get; set; }
 }
 
 public interface IChifaIntegrationFacade

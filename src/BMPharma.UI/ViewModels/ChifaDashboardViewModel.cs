@@ -1,8 +1,11 @@
+using System.Timers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using BMPharma.CHIFA.Interfaces;
+using BMPharma.CHIFA.Services;
 using BMPharma.Domain.Enums;
 using Microsoft.Extensions.Logging;
+using Timer = System.Timers.Timer;
 
 namespace BMPharma.UI.ViewModels;
 
@@ -11,6 +14,9 @@ public partial class ChifaDashboardViewModel : ViewModelBase
     private readonly IChifaIntegrationFacade _facade;
     private readonly ChifaIntegrationModeProvider _modeProvider;
     private readonly ILogger<ChifaDashboardViewModel> _logger;
+    private readonly Timer _refreshTimer;
+
+    private const int AutoRefreshIntervalMs = 30_000;
 
     public ChifaDashboardViewModel(
         IChifaIntegrationFacade facade,
@@ -24,6 +30,11 @@ public partial class ChifaDashboardViewModel : ViewModelBase
         Title = "Tableau de bord CHIFA";
         IntegrationMode = _modeProvider.CurrentMode.ToString();
         IsReadOnly = _modeProvider.IsReadOnly;
+
+        _refreshTimer = new Timer(AutoRefreshIntervalMs);
+        _refreshTimer.Elapsed += async (_, _) => await LoadStatusAsync();
+        _refreshTimer.AutoReset = true;
+        _refreshTimer.Start();
 
         _ = LoadStatusAsync();
     }
@@ -86,6 +97,16 @@ public partial class ChifaDashboardViewModel : ViewModelBase
     [ObservableProperty] private string _requiredActionApplication = "";
     [ObservableProperty] private string _requiredActionBmPharmaWaits = "";
 
+    [ObservableProperty] private string _circuitBreakerState = "Inconnu";
+    [ObservableProperty] private string _circuitBreakerColor = "#757575";
+    [ObservableProperty] private int _metricsTotal;
+    [ObservableProperty] private int _metricsSuccess;
+    [ObservableProperty] private int _metricsFailed;
+    [ObservableProperty] private string _metricsAvgMs = "-";
+    [ObservableProperty] private string _correlationId = "-";
+    [ObservableProperty] private string _lastSyncResult = "-";
+    [ObservableProperty] private string _lastSyncTimeDisplay = "-";
+
     [RelayCommand]
     private async Task RefreshStatusAsync()
     {
@@ -102,9 +123,83 @@ public partial class ChifaDashboardViewModel : ViewModelBase
             StatusMessage = "Vérification de l'état du système...";
 
             LoadModeStatusAsync();
-            await LoadConnectionStatusAsync();
-            await LoadTokenStatusAsync();
-            await LoadSigningStatusAsync();
+
+            var overviewResult = await _facade.GetDashboardOverviewAsync();
+
+            if (overviewResult.IsSuccess && overviewResult.Data != null)
+            {
+                var data = overviewResult.Data;
+
+                ConnectionStatus = data.Status.Technical switch
+                {
+                    TechnicalStatus.Connected => "Connecté",
+                    TechnicalStatus.Degraded => "Dégradé",
+                    TechnicalStatus.Disconnected => "Déconnecté",
+                    _ => "Inconnu"
+                };
+                ConnectionStatusColor = data.Status.Technical switch
+                {
+                    TechnicalStatus.Connected => "#4CAF50",
+                    TechnicalStatus.Degraded => "#FF9800",
+                    _ => "#F44336"
+                };
+                IsPostgresConnected = data.Status.Technical == TechnicalStatus.Connected;
+
+                ChifaStatus = data.Status.IsReady ? "Prêt" : data.Status.Technical == TechnicalStatus.Connected ? "En ligne" : "Hors ligne";
+                ChifaStatusColor = data.Status.IsReady ? "#4CAF50" : data.Status.Technical == TechnicalStatus.Connected ? "#FF9800" : "#F44336";
+                IsChifaAvailable = data.Status.Technical != TechnicalStatus.Disconnected;
+
+                TokenStatus = data.Status.Business != BusinessStatus.Unknown ? "Présent" : "Vérification...";
+                TokenStatusColor = data.Status.Business != BusinessStatus.Unknown ? "#4CAF50" : "#FF9800";
+                IsTokenPresent = data.Status.Business != BusinessStatus.Unknown;
+
+                PreparedInvoiceCount = data.TotalInvoicesToday;
+                SynchronizedInvoiceCount = data.LastSync?.InvoicesUpdated ?? 0;
+                BordereauPreparedCount = data.PendingBordereaux;
+                NextBordereauNumber = data.LastSync?.BordereauxFound > 0 ? $"{data.LastSync.BordereauxFound} trouvé(s)" : "-";
+                CnasTransmissionStatus = data.Status.Visibility == VisibilityStatus.NotVisible ? "Prêt" : "Transmis";
+                CnasTransmissionColor = data.Status.Visibility == VisibilityStatus.NotVisible ? "#4CAF50" : "#757575";
+
+                LastOperation = data.LastOperation ?? "Aucune";
+                LastOperationTime = data.Timestamp.ToLocalTime().ToString("HH:mm:ss");
+
+                CircuitBreakerState = data.CircuitBreakerState ?? "Inconnu";
+                CircuitBreakerColor = data.CircuitBreakerState switch
+                {
+                    "Closed" => "#4CAF50",
+                    "HalfOpen" => "#FF9800",
+                    "Open" => "#F44336",
+                    _ => "#757575"
+                };
+                MetricsTotal = data.MetricsTotal;
+                MetricsSuccess = data.MetricsSuccess;
+                MetricsFailed = data.MetricsFailed;
+                MetricsAvgMs = data.MetricsAvgMs > 0 ? $"{data.MetricsAvgMs} ms" : "-";
+                CorrelationId = data.CorrelationId ?? "-";
+                LastSyncResult = data.LastSyncResult ?? "-";
+                LastSyncTimeDisplay = data.LastSyncTime?.ToLocalTime().ToString("HH:mm:ss") ?? "-";
+
+                if (!string.IsNullOrEmpty(data.Status.ErrorMessage))
+                {
+                    LastError = data.Status.ErrorMessage;
+                    HasError = true;
+                }
+            }
+            else
+            {
+                ConnectionStatus = "Indisponible";
+                ConnectionStatusColor = "#F44336";
+                IsPostgresConnected = false;
+                ChifaStatus = "Indisponible";
+                ChifaStatusColor = "#F44336";
+
+                if (!string.IsNullOrEmpty(overviewResult.ErrorMessage))
+                {
+                    LastError = overviewResult.ErrorMessage.ToUserMessage();
+                    HasError = true;
+                }
+            }
+
             UpdateWorkflowSteps();
             DetermineRequiredAction();
 
@@ -114,7 +209,7 @@ public partial class ChifaDashboardViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Erreur lors du chargement du statut CHIFA");
             HasError = true;
-            LastError = $"Erreur de chargement: {ex.Message}";
+            LastError = $"Erreur de chargement: {ex.ToUserMessage()}";
             StatusMessage = "Erreur lors de la vérification";
         }
         finally
@@ -137,127 +232,12 @@ public partial class ChifaDashboardViewModel : ViewModelBase
         };
     }
 
-    private async Task LoadConnectionStatusAsync()
-    {
-        try
-        {
-            IsPostgresConnected = await _facade.IsAvailableAsync();
-            var health = await _facade.GetHealthStatusAsync();
-
-            if (health.IsOnline && health.IsDatabaseConnected)
-            {
-                ConnectionStatus = "Connecté";
-                ConnectionStatusColor = "#4CAF50";
-                IsPostgresConnected = true;
-            }
-            else if (health.IsOnline)
-            {
-                ConnectionStatus = "Partiellement connecté";
-                ConnectionStatusColor = "#FF9800";
-                IsPostgresConnected = false;
-            }
-            else
-            {
-                ConnectionStatus = "Déconnecté";
-                ConnectionStatusColor = "#F44336";
-                IsPostgresConnected = false;
-            }
-
-            if (!string.IsNullOrEmpty(health.ErrorMessage))
-            {
-                LastError = health.ErrorMessage;
-                HasError = true;
-            }
-
-            ChifaStatus = health.IsOnline ? "En ligne" : "Hors ligne";
-            ChifaStatusColor = health.IsOnline ? "#4CAF50" : "#F44336";
-            IsChifaAvailable = health.IsOnline;
-        }
-        catch (Exception ex)
-        {
-            ConnectionStatus = "Erreur de connexion";
-            ConnectionStatusColor = "#F44336";
-            IsPostgresConnected = false;
-            ChifaStatus = "Indisponible";
-            ChifaStatusColor = "#F44336";
-            LastError = $"PostgreSQL indisponible: {ex.Message}";
-            HasError = true;
-            _logger.LogWarning(ex, "PostgreSQL connection check failed");
-        }
-    }
-
-    private async Task LoadTokenStatusAsync()
-    {
-        try
-        {
-            var (isPresent, label, isValid) = await _facade.GetTokenStatusAsync();
-
-            if (isPresent && isValid)
-            {
-                TokenStatus = $"Présent ({label})";
-                TokenStatusColor = "#4CAF50";
-                IsTokenPresent = true;
-            }
-            else if (isPresent)
-            {
-                TokenStatus = "Présent (expiry inconnue)";
-                TokenStatusColor = "#FF9800";
-                IsTokenPresent = true;
-            }
-            else
-            {
-                TokenStatus = "Non détecté";
-                TokenStatusColor = "#F44336";
-                IsTokenPresent = false;
-            }
-        }
-        catch (Exception ex)
-        {
-            TokenStatus = "Erreur de détection";
-            TokenStatusColor = "#F44336";
-            IsTokenPresent = false;
-            _logger.LogWarning(ex, "Token check failed");
-        }
-    }
-
-    private async Task LoadSigningStatusAsync()
-    {
-        try
-        {
-            var status = await _facade.GetSigningStatusAsync();
-            SigningStatus = status switch
-            {
-                ChifaSigningStatus.NotSigned => "Non signé",
-                ChifaSigningStatus.SigningRequired => "Signature requise",
-                ChifaSigningStatus.SigningInProgress => "Signature en cours",
-                ChifaSigningStatus.Signed => "Signé",
-                ChifaSigningStatus.SigningFailed => "Échec de signature",
-                ChifaSigningStatus.TokenNotPresent => "Token non présent",
-                _ => "Inconnu"
-            };
-            SigningStatusColor = status switch
-            {
-                ChifaSigningStatus.Signed => "#4CAF50",
-                ChifaSigningStatus.SigningInProgress => "#FF9800",
-                ChifaSigningStatus.SigningFailed => "#F44336",
-                ChifaSigningStatus.TokenNotPresent => "#F44336",
-                _ => "#757575"
-            };
-        }
-        catch (Exception ex)
-        {
-            SigningStatus = "Erreur";
-            SigningStatusColor = "#F44336";
-            _logger.LogWarning(ex, "Signing status check failed");
-        }
-    }
-
     private void UpdateWorkflowSteps()
     {
         WorkflowStep1Status = IsPostgresConnected ? "Prêt" : "En attente connexion";
         WorkflowStep1Color = IsPostgresConnected ? "#4CAF50" : "#757575";
 
-        WorkflowStep2Status = PreparedInvoiceCount > 0 ? $"{PreparedInvoiceCount} facture(s) prête(s)" : "En attente";
+        WorkflowStep2Status = PreparedInvoiceCount > 0 ? $"{PreparedInvoiceCount} facture(s) aujourd'hui" : "En attente";
         WorkflowStep2Color = PreparedInvoiceCount > 0 ? "#4CAF50" : "#757575";
 
         WorkflowStep3Status = IsPostgresConnected ? "Prêt" : "Non disponible";
@@ -272,7 +252,7 @@ public partial class ChifaDashboardViewModel : ViewModelBase
         WorkflowStep6Status = SigningStatus;
         WorkflowStep6Color = SigningStatusColor;
 
-        WorkflowStep7Status = BordereauPreparedCount > 0 ? $"{BordereauPreparedCount} bordereau(x)" : "En attente";
+        WorkflowStep7Status = BordereauPreparedCount > 0 ? $"{BordereauPreparedCount} en attente" : "En attente";
         WorkflowStep7Color = BordereauPreparedCount > 0 ? "#4CAF50" : "#757575";
 
         WorkflowStep8Status = CnasTransmissionStatus;
