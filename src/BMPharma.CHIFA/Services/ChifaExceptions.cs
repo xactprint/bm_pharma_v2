@@ -14,13 +14,6 @@ public class ChifaValidationException : Exception
         : base(message) { Errors = errors ?? new List<ChifaValidationError>(); }
 }
 
-public class ChifaValidationError
-{
-    public string Code { get; set; } = string.Empty;
-    public string Field { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-}
-
 public class ChifaWriteException : Exception
 {
     public string EntityType { get; }
